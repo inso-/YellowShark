@@ -34,8 +34,9 @@ public:
     std::vector<paquet> getPaquets() const;
     void setPaquets(const std::vector<paquet> &value);
 
+
 private:
-    std::vector<paquet> paquets;
+    mutable std::vector<paquet> paquets;
     QString fileName;
 
 };

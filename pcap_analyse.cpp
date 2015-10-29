@@ -1,4 +1,7 @@
 #include "pcap_analyse.h"
+#include <ostream>
+#include <sstream>
+#include <netdb.h>
 
 struct pcap_pkthdr pcap_analyse::header;
 unsigned int pcap_analyse::pkt_counter = 0;
@@ -10,6 +13,14 @@ char pcap_analyse::errbuf[PCAP_ERRBUF_SIZE];
 const u_char *pcap_analyse::packet;
 pcap_t *pcap_analyse::handle;
 
+template <typename T>
+  std::string NumberToString ( T Number )
+  {
+     std::ostringstream ss;
+     ss << Number;
+     return ss.str();
+  }
+
 pcap_analyse::pcap_analyse(QString filename)
 {
     handle = pcap_open_offline(filename.toLatin1(), errbuf);   //call pcap library function
@@ -18,6 +29,7 @@ pcap_analyse::pcap_analyse(QString filename)
        qDebug("fail open file");
        return;
       }
+   return;
 }
 
 
@@ -29,13 +41,16 @@ std::vector<paquet> pcap_analyse::getPaquets() const
     {
         init = true;
         while (packet = pcap_next(handle,&header)) {
+            qDebug("%s\n", "TEST");
             //Paquet
+            paquet *tmp = new paquet();
              // header contains information about the packet (e.g. timestamp)
             QDateTime timestamp;
             timestamp.setTime_t(header.ts.tv_sec);
-            qDebug(timestamp.toString().toLatin1());
+            tmp->date = timestamp;
+            //qDebug(timestamp.toString().toLatin1());
              u_char *pkt_ptr = (u_char *)packet; //cast a pointer to the packet data
-
+            tmp->pkt_ptr = pkt_ptr;
              //parse the first (ethernet) header, grabbing the type field
              int ether_type = ((int)(pkt_ptr[12]) << 8) | (int)pkt_ptr[13];
              int ether_offset = 0;
@@ -52,12 +67,35 @@ std::vector<paquet> pcap_analyse::getPaquets() const
              struct ip *ip_hdr = (struct ip *)pkt_ptr; //point to an IP header structure
 
              int packet_length = ntohs(ip_hdr->ip_len);
+             tmp->size = packet_length;
+             tmp->source = inet_ntoa(ip_hdr->ip_src);
+             tmp->destination = inet_ntoa(ip_hdr->ip_dst);
+             struct protoent *test;
 
+             test =      getprotobynumber(ip_hdr->ip_p);
+             if (test)
+                tmp->type = test->p_name;
+             else{
+                 qDebug("alert proto %d not found", ip_hdr->ip_p);
+             switch (ip_hdr->ip_p)
+             {
+             case 142:
+             {
+                 tmp->type = "rohc";
+                 break;
+             }
+             default:
+                 tmp->type = "unknow(" + NumberToString((int)ip_hdr->ip_p) + ")";
+                 qDebug("alert proto %d not found", ip_hdr->ip_p);
+             }
+        }
+
+//             qDebug("Type : %d",  ip_hdr->ip_tos);
              //check to see if the next second has started, for statistics purposes
              if (current_ts == 0) {  //this takes care of the very first packet seen
                 current_ts = header.ts.tv_sec;
              } else if (header.ts.tv_sec > current_ts) {
-                printf("%d KBps\n", cur_counter/1000); //print
+                qDebug("%d KBps\n", cur_counter/1000); //print
                 cur_counter = 0; //reset counters
                 current_ts = header.ts.tv_sec; //update time interval
              }
@@ -65,7 +103,7 @@ std::vector<paquet> pcap_analyse::getPaquets() const
              cur_counter += packet_length;
              byte_counter += packet_length; //byte counter update
              pkt_counter++; //increment number of packets seen
-
+             paquets.push_back(*tmp);
            } //end internal loop for reading packets (all in one file)
 
            pcap_close(handle);

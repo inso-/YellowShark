@@ -27,7 +27,6 @@ QSortFilterProxyModel proxyModel;
 
 void MainWindow::on_actionOpen_triggered()
 {
-    model.packets = null;
    QString fileName = QFileDialog::getOpenFileName(this, tr("Open file"), "",tr("Files(*.pcap)"));
    qDebug(fileName.toLatin1());
    pcap_analyse *parse = new pcap_analyse(fileName);
