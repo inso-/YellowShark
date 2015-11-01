@@ -3,23 +3,27 @@
 
 #include <QMainWindow>
 #include <QAbstractTableModel>
+#include <stdexcept>
+#include <QItemSelection>
+#include <sendpacketwindow.h>
+#include <filterwindow.h>
 #include "paquet.h"
 
 class TestModel : public QAbstractTableModel
 {
+public slots:
+    //void selectionChangedSlot(const QItemSelection &newSelection,const QItemSelection &oldSelection);
 public:
     std::vector<paquet> packets;
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const
     {
-        qDebug("%d",packets.size());
-        if (packets.size() == 0)
-        return 1;
+      //  qDebug("%d",packets.size());
         return packets.size();
     }
     int columnCount(const QModelIndex &parent = QModelIndex()) const
     {
-        return 6;
+        return 8;
     }
     QVariant data(const QModelIndex &index, int role) const
     {
@@ -27,6 +31,7 @@ public:
         {
         case Qt::DisplayRole:
         {
+            try{
             switch (index.column())
             {
             case 0:
@@ -38,11 +43,19 @@ public:
             case 3:
                 return packets.at(index.row()).source.c_str();
             case 4:
-                return packets.at(index.row()).destination.c_str();
+                return packets.at(index.row()).sourcePort.c_str();
             case 5:
+                return packets.at(index.row()).destination.c_str();
+            case 6:
+                return packets.at(index.row()).destinationPort.c_str();
+            case 7:
                 return (int)(packets.at(index.row()).size);
             default:
                 break;
+            }
+            }
+            catch (const std::out_of_range& e) {
+                return 0;
             }
         }
         }
@@ -64,8 +77,12 @@ public:
                 case 3:
                     return QString("Source");
                 case 4:
-                    return QString("Destination");
+                    return QString("Source Port");
                 case 5:
+                    return QString("Destination");
+                case 6:
+                    return QString("Destination Port");
+                case 7:
                     return QString("Length");
                 }
               if (orientation == Qt::Vertical)
@@ -90,9 +107,19 @@ public:
     TestModel model;
 private slots:
     void on_actionOpen_triggered();
+    void on_tableWidget_activated(const QModelIndex &index);
+    void on_actionSend_a_crafted_packet_triggered();
+
+
+    void on_actionFilter_Capture_triggered();
+
+public slots:
+     void on_tableWidgetSelectionModel_currentRowChanged(QModelIndex newSelection,QModelIndex oldSelection);
 
 private:
     Ui::MainWindow *ui;
+    SendPacketWindow *sendwindow;
+    FilterWindow *filterwindow;
 };
 
 #endif // MAINWINDOW_H
