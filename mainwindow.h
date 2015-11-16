@@ -1,12 +1,15 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <live_analyse.h>
 #include <QMainWindow>
 #include <QAbstractTableModel>
 #include <stdexcept>
 #include <QItemSelection>
 #include <sendpacketwindow.h>
 #include <filterwindow.h>
+#include <pcap_analyse.h>
+#include <QThread>
 #include "paquet.h"
 
 class TestModel : public QAbstractTableModel
@@ -97,6 +100,8 @@ namespace Ui {
 class MainWindow;
 }
 
+//class live_analyse;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -105,6 +110,8 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     TestModel model;
+    void refreshtableWidget();
+    QThread *thread;
 private slots:
     void on_actionOpen_triggered();
     void on_tableWidget_activated(const QModelIndex &index);
@@ -113,13 +120,20 @@ private slots:
 
     void on_actionFilter_Capture_triggered();
 
+    void on_actionStart_Capture_triggered();
+
 public slots:
      void on_tableWidgetSelectionModel_currentRowChanged(QModelIndex newSelection,QModelIndex oldSelection);
 
 private:
+    pcap_analyse *parse;
+    live_analyse *live;
     Ui::MainWindow *ui;
     SendPacketWindow *sendwindow;
     FilterWindow *filterwindow;
+//public:
+    void getDataFromFile(void);
+
 };
 
 #endif // MAINWINDOW_H

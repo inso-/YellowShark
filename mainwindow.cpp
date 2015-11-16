@@ -6,13 +6,14 @@
 #include <QDebug>
 #include <QDateTime>
 #include <paquet.h>
-#include <pcap_analyse.h>
+
 #include <QSortFilterProxyModel>
 #include <QItemSelection>
 #include <QString>
 #include <sstream>
 #include <iomanip>
 #include <tools.h>
+#include <future>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -33,35 +34,75 @@ QSortFilterProxyModel proxyModel;
 
 void MainWindow::on_actionOpen_triggered()
 {
-   static char init = 0;
+
    QString fileName = QFileDialog::getOpenFileName(this, tr("Open file"), "",tr("Files(*.pcap)"));
    if (fileName == "")
        return;
-   pcap_analyse *parse = new pcap_analyse(fileName);
+   parse = new pcap_analyse(fileName);
  //  pcap_analyse *parse = new pcap_analyse("/Users/inso/Study/Secu/network/mypcap.pcap");
-   if (init)
-        proxyModel.clear();
 
-   model.packets = parse->getPaquets();
-   proxyModel.setSourceModel( &model );
+    this->getDataFromFile();
+   //auto func = std::bind(&MainWindow::getDataFromFile, this, std::placeholders::_1);
 
-   if (!init){
-       init = 1;
-       ui->tableWidget->setModel( &proxyModel );
-       QItemSelectionModel *sm = ui->tableWidget->selectionModel();
-       connect(sm, SIGNAL(currentRowChanged(QModelIndex,QModelIndex)),
-                   this, SLOT(on_tableWidgetSelectionModel_currentRowChanged(QModelIndex ,QModelIndex)));
-       //connect(model,
-       //SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-      // model,
-      // SLOT(selectionChangedSlot(const QItemSelection &, const QItemSelection &)));
-   }
+   //auto f = std::async(std::launch::async, func, 0);
 
-   //ui->tableWidget->setModel(&model);
-   qDebug("%d\n", model.packets.size());
-   ui->tableWidget->setVisible(false);
-   ui->tableWidget->resizeColumnsToContents();
-   ui->tableWidget->setVisible(true);
+  // QFuture<void> future = QtConcurrent::run(func);
+//   auto f = async(std::launch::async, func, 0);
+  // model.packets = f.get();
+
+}
+
+void MainWindow::getDataFromFile()
+{
+         proxyModel.clear();
+
+    model.packets = parse->getPaquets();
+    this->refreshtableWidget();
+//    proxyModel.setSourceModel( &model );
+
+//    if (!init){
+//        init = 1;
+//        ui->tableWidget->setModel( &proxyModel );
+//        QItemSelectionModel *sm = ui->tableWidget->selectionModel();
+//        connect(sm, SIGNAL(currentRowChanged(QModelIndex,QModelIndex)),
+//                    this, SLOT(on_tableWidgetSelectionModel_currentRowChanged(QModelIndex ,QModelIndex)));
+//        //connect(model,
+//        //SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+//       // model,
+//       // SLOT(selectionChangedSlot(const QItemSelection &, const QItemSelection &)));
+//    }
+
+//    //ui->tableWidget->setModel(&model);
+//    qDebug("%d\n", model.packets.size());
+//    ui->tableWidget->setVisible(false);
+//    ui->tableWidget->resizeColumnsToContents();
+//    ui->tableWidget->setVisible(true);
+//}
+}
+
+void MainWindow::refreshtableWidget()
+{
+    static char init = 0;
+
+    proxyModel.setSourceModel( &model );
+
+    if (!init){
+        init = 1;
+        ui->tableWidget->setModel( &proxyModel );
+        QItemSelectionModel *sm = ui->tableWidget->selectionModel();
+        connect(sm, SIGNAL(currentRowChanged(QModelIndex,QModelIndex)),
+                    this, SLOT(on_tableWidgetSelectionModel_currentRowChanged(QModelIndex ,QModelIndex)));
+        //connect(model,
+        //SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+       // model,
+       // SLOT(selectionChangedSlot(const QItemSelection &, const QItemSelection &)));
+    }
+
+    //ui->tableWidget->setModel(&model);
+    qDebug("%d\n", model.packets.size());
+    ui->tableWidget->setVisible(false);
+    ui->tableWidget->resizeColumnsToContents();
+    ui->tableWidget->setVisible(true);
 }
 
 void MainWindow::on_tableWidgetSelectionModel_currentRowChanged(QModelIndex newSelection,QModelIndex oldSelection)
@@ -92,4 +133,39 @@ void MainWindow::on_actionFilter_Capture_triggered()
 {
     filterwindow = new FilterWindow();
     filterwindow->show();
+}
+
+void MainWindow::on_actionStart_Capture_triggered()
+{
+    static int run = 0;
+
+    if (run == 1)
+    {
+//        ui->menuBar->
+        live->abort();
+        thread->wait();
+        run = 0;
+        delete thread;
+        delete live;
+        return;
+    }
+
+
+    //live_analyse *tmp = new live_analyse();
+
+    live = new live_analyse();
+    live->window = this;
+    thread = new QThread();
+
+
+       live->moveToThread(thread);
+       connect(thread, SIGNAL(started()), live, SLOT(run()));
+       connect(live, SIGNAL(finished()), thread, SLOT(quit()), Qt::DirectConnection);
+       qDebug()<<"Starting thread in Thread "<<this->QObject::thread()->currentThreadId();
+       run = 1;
+       thread->start();
+        live->requestPaquet();
+   //live->moveToThread(thread)
+
+   //live->run();
 }

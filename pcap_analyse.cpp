@@ -24,7 +24,7 @@ pcap_analyse::pcap_analyse(QString filename)
 
 
 
-std::vector<paquet> pcap_analyse::getPaquets() const
+std::vector<paquet> pcap_analyse::getPaquets(void) const
 {
     if(handle)
     {

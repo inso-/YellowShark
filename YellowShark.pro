@@ -10,22 +10,24 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = YellowShark
 TEMPLATE = app
-LIBS += -L/opt/local/lib/ -lpcap
-
+LIBS += -L/opt/local/lib/ -lpcap -lpthread -lc
+CONFIG += c++11
 SOURCES += main.cpp\
         mainwindow.cpp \
     pcap_analyse.cpp \
     paquet.cpp \
     sendpacketwindow.cpp \
     tools.cpp \
-    filterwindow.cpp
+    filterwindow.cpp \
+    live_analyse.cpp
 
 HEADERS  += mainwindow.h \
     pcap_analyse.h \
     paquet.h \
     sendpacketwindow.h \
     tools.h \
-    filterwindow.h
+    filterwindow.h \
+    live_analyse.h
 
 FORMS    += mainwindow.ui \
     sendpacketwindow.ui \

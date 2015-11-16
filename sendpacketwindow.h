@@ -3,6 +3,7 @@
 
 #include <QDialog>
 
+
 namespace Ui {
 class SendPacketWindow;
 }
@@ -14,6 +15,9 @@ class SendPacketWindow : public QDialog
 public:
     explicit SendPacketWindow(QWidget *parent = 0);
     ~SendPacketWindow();
+
+private slots:
+    void on_buttonBox_accepted();
 
 private:
     Ui::SendPacketWindow *ui;

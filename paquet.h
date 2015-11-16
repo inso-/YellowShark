@@ -28,14 +28,32 @@ struct ipv6
     struct in6_addr dst;
 };
 
+struct pseudo_header
+{
+    u_int32_t source_address;
+    u_int32_t dest_address;
+    u_int8_t placeholder;
+    u_int8_t protocol;
+    u_int16_t tcp_length;
+};
+
 #define ETHER_TYPE_IP (0x0800)
 #define ETHER_TYPE_8021Q (0x8100)
 #define ETHER_TYPE_IPV6 (0x86DD)
+
+
 
 class paquet
 {
 public:
     paquet(u_char *pkt, pcap_pkthdr header);
+    paquet(u_char *pkt, int size);
+    paquet(std::string type,
+                   std::string source,
+                   std::string sourceport,
+                   std::string destination,
+                   std::string destinationport,
+                   std::string data);
 
     QDateTime   date;
     std::string type;
@@ -43,18 +61,24 @@ public:
     std::string destination;
     std::string sourcePort;
     std::string destinationPort;
+    std::string payload;
     int ether_offset;
     uchar      *pkt_ptr;
     struct ip *ip_hdr;
     struct ipv6 *ipv6_hdr;
     struct tcphdr *tcp_hdr;     // tcp header struct
     struct udphdr *udp_hdr;     // udp header struct
-
+    struct sockaddr_in sin;
+    struct pseudo_header psh;
+    char datagram[4096];
+    char *pseudogram;
+    char *data;
     unsigned long size_ip;
     unsigned long size_ucp;
     unsigned long size_tcp;
     int size_payload;
     unsigned long size;
+    void send();
 
 
 private:
@@ -63,7 +87,12 @@ private:
     void parse_ipv6_header();
     void parse_tcp_header();
     void parse_udp_header();
+    unsigned short csum(unsigned short *ptr,int nbytes);
+    void build_ip_header();
+    void build_tcp_header();
+    void build_data_part();
     void get_protocol(int proto);
+    void init(u_char* pkt, int size);
 };
 
 #endif // PAQUET_H
