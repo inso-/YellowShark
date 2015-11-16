@@ -64,7 +64,11 @@ public:
     std::string payload;
     int ether_offset;
     uchar      *pkt_ptr;
+    #ifdef __APPLE__
     struct ip *ip_hdr;
+    #else
+    struct iphdr *ip_hdr;
+    #endif
     struct ipv6 *ipv6_hdr;
     struct tcphdr *tcp_hdr;     // tcp header struct
     struct udphdr *udp_hdr;     // udp header struct
