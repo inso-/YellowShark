@@ -12,6 +12,14 @@ template <typename T>
      return ss.str();
   }
 
+  paquet::paquet()
+  {
+    //  QDateTime timestamp = QDateTime::currentDateTime();
+    //  this->date = timestamp;
+
+    //  this->init(pkt, size);
+  }
+
 paquet::paquet(u_char *pkt, int size)
 {
     QDateTime timestamp = QDateTime::currentDateTime();
@@ -254,6 +262,8 @@ void paquet::init(u_char* pkt, int size)
         this->parse_tcp_header();
     else if (this->type == "udp")
          this->parse_udp_header();
+    else if (this->type == "icmp")
+         this->parse_icmp_header();
     else {
         this->sourcePort = "0";
         this->destinationPort = "0";
@@ -403,9 +413,32 @@ void paquet::parse_udp_header()
     iphdrlen = ip_hdr->ihl * 4;
 
     udp_hdr = (struct udphdr*)(pkt_ptr + iphdrlen);
-   // this->sourcePort = NumberToString(ntohs(udp_hdr->uh_sport));
-   // this->destinationPort = NumberToString(ntohs(udp_hdr->uh_dport));
+    this->sourcePort = NumberToString(ntohs(udp_hdr->source));
+    this->destinationPort = NumberToString(ntohs(udp_hdr->dest));
 #endif
+}
+void paquet::parse_icmp_header()
+{
+
+    unsigned short iphdrlen;
+
+
+#ifdef __APPLE__
+    iphdrlen = ip_hdr->ip_hl * 4;
+
+    icmp_hdr = (struct icmphdr*)(pkt_ptr + iphdrlen);
+ //   this->sourcePort = NumberToString(ntohs(udp_hdr->uh_sport));
+ //   this->destinationPort = NumberToString(ntohs(udp_hdr->uh_dport));
+#eldef __WIN32
+#else
+    iphdrlen = ip_hdr->ihl * 4;
+
+    icmp_hdr = (struct icmphdr*)(pkt_ptr + iphdrlen);
+  //  this->sourcePort = NumberToString(ntohs(icmp_hdr->));
+  //  this->destinationPort = NumberToString(ntohs(icmp_hdr->dest));
+#endif
+     this->sourcePort = "no";
+     this->destinationPort = "no";
 }
 
 

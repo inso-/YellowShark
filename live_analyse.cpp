@@ -7,6 +7,7 @@
 #include <mainwindow.h>
 #include <QDebug>
 #include <unistd.h>
+#include <netinet/if_ether.h>
 
 
 live_analyse::live_analyse(QObject *parent) :
@@ -15,6 +16,7 @@ live_analyse::live_analyse(QObject *parent) :
     window = (MainWindow*)parent;
     _abort = false;
     _interrupt = false;
+   // condition.wakeAll();
 }
 
 void live_analyse::requestPaquet()
@@ -37,7 +39,7 @@ void live_analyse::run()
     int nbyt;
 
     printf("try socket\n");
-    sock_raw = socket(AF_INET , SOCK_RAW , IPPROTO_TCP);
+    sock_raw = socket(AF_PACKET , SOCK_RAW , htons(ETH_P_ALL));
      printf("socket %d\n", sock_raw);
        if(sock_raw < 0)
        {
@@ -48,14 +50,14 @@ void live_analyse::run()
 
        while(1)
        {
-           qDebug("while ");
+       //    qDebug("while ");
            printf("while \n");
            mutex.lock();
                    if (!_interrupt && !_abort) {
                        condition.wait(&mutex);
                    }
-                   _interrupt = false;
-                   qDebug("whil2 ");
+                  // _interrupt = false;
+                   //qDebug("whil2 ");
                    printf("whil2 \n");
                    if (_abort) {
                        qDebug() <<"Aborting worker mainLoop in Thread "<<thread()->currentThreadId();
@@ -64,8 +66,8 @@ void live_analyse::run()
                        emit finished();
                        return;
                    }
-                   qDebug("whil3 ");
-                   printf("whil2 \n");
+                   //qDebug("whil3 ");
+                   printf("whil3 \n");
 
                    //Method method = _method;
                    mutex.unlock();
@@ -73,8 +75,8 @@ void live_analyse::run()
                         continue;
            saddr_size = sizeof saddr;
            //Receive a packet
-           qDebug("while 1");
-           printf("while 1\n");
+ //          qDebug("while 1");
+           printf("while 4\n");
            data_size = recvfrom(sock_raw , buffer , 65536 , 0 , &saddr , (socklen_t*)&saddr_size);
            if(data_size <0 )
            {
@@ -83,8 +85,9 @@ void live_analyse::run()
            }
            //Now process the packet
            paquet tmp = paquet(buffer, data_size);
-           window->model.packets.push_back(tmp);
-           window->refreshtableWidget();
+           emit tvalueChanged(buffer, data_size);
+       //    window->model.packets.push_back(tmp);
+        //   window->refreshtableWidget();
         //   ref ->push_back(tmp);
 //           ProcessPacket(buffer , data_size);
        }

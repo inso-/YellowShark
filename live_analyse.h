@@ -1,4 +1,4 @@
-#ifndef LIVE_ANALYSE_H
+ #ifndef LIVE_ANALYSE_H
 #define LIVE_ANALYSE_H
 #include <vector>
 #include <paquet.h>
@@ -32,7 +32,7 @@ class live_analyse : public QObject
     QMutex mutex;
         void requestPaquet();
 signals:
-    void valueChanged(const QString &value);
+    void tvalueChanged(unsigned char *, int);
     void finished();
 
 public slots:

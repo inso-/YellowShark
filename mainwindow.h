@@ -19,6 +19,19 @@ public slots:
 public:
     std::vector<paquet> packets;
 
+    int addPaquet(paquet packet)
+    {
+        emit beginInsertRows(QModelIndex(), packets.size(), packets.size());
+        packets.push_back(packet);
+        emit endInsertRows();
+        //QModelIndex top = createIndex(packets.size(), );
+
+
+      //  emit dataChanged();
+      //  qDebug("%d",packets.size());
+//        return packets.size();
+    }
+
     int rowCount(const QModelIndex &parent = QModelIndex()) const
     {
       //  qDebug("%d",packets.size());
@@ -96,6 +109,8 @@ public:
     }
 };
 
+    Q_DECLARE_METATYPE(paquet);
+
 namespace Ui {
 class MainWindow;
 }
@@ -122,9 +137,9 @@ private slots:
 
     void on_actionStart_Capture_triggered();
 
-public slots:
-     void on_tableWidgetSelectionModel_currentRowChanged(QModelIndex newSelection,QModelIndex oldSelection);
-
+    public slots:
+     void tableWidgetSelectionModel_currentRowChanged(QModelIndex newSelection,QModelIndex oldSelection);
+     void testChanged(unsigned char *, int);
 private:
     pcap_analyse *parse;
     live_analyse *live;

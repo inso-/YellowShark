@@ -46,6 +46,7 @@ struct pseudo_header
 class paquet
 {
 public:
+    paquet();
     paquet(u_char *pkt, pcap_pkthdr header);
     paquet(u_char *pkt, int size);
     paquet(std::string type,
@@ -72,6 +73,7 @@ public:
     struct ipv6 *ipv6_hdr;
     struct tcphdr *tcp_hdr;     // tcp header struct
     struct udphdr *udp_hdr;     // udp header struct
+    struct icmphdr *icmp_hdr;
     struct sockaddr_in sin;
     struct pseudo_header psh;
     char datagram[4096];
@@ -91,6 +93,7 @@ private:
     void parse_ipv6_header();
     void parse_tcp_header();
     void parse_udp_header();
+    void parse_icmp_header();
     unsigned short csum(unsigned short *ptr,int nbytes);
     void build_ip_header();
     void build_tcp_header();
