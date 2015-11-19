@@ -20,6 +20,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    run_pcap = 0;
+    run_live = 0;
     ui->tableWidget->setSortingEnabled(true);
     ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableWidget->setModel(&model);
@@ -35,10 +37,7 @@ QSortFilterProxyModel proxyModel;
 void MainWindow::on_actionOpen_triggered()
 {
 
-   QString fileName = QFileDialog::getOpenFileName(this, tr("Open file"), "",tr("Files(*.pcap)"));
-   if (fileName == "")
-       return;
-   parse = new pcap_analyse(fileName);
+
  //  pcap_analyse *parse = new pcap_analyse("/Users/inso/Study/Secu/network/mypcap.pcap");
 
     this->getDataFromFile();
@@ -52,12 +51,56 @@ void MainWindow::on_actionOpen_triggered()
 
 }
 
+    Q_DECLARE_METATYPE(pcap_pkthdr);
+
 void MainWindow::getDataFromFile()
 {
-         proxyModel.clear();
+qRegisterMetaType<pcap_pkthdr>("pcap_pkthdr");
+  //  proxyModel.clear();
+  //  this->refreshtableWidget();
+   // parse->getPaquets();
 
-    model.packets = parse->getPaquets();
-    this->refreshtableWidget();
+    if (run_pcap == 1 || run_live == 1 )
+    {
+//        ui->menuBar->
+        if (run_pcap == 1)
+            parse->abort();
+        if (run_live == 1)
+            live->abort();
+        thread->wait();
+        run_pcap = 0;
+        run_live = 0;
+        delete thread;
+        delete live;
+        delete parse;
+        return;
+    }
+      proxyModel.clear();
+      QString fileName = QFileDialog::getOpenFileName(this, tr("Open file"), "",tr("Files(*.pcap)"));
+      if (fileName == "")
+          return;
+      parse = new pcap_analyse();
+
+    //live_analyse *tmp = new live_analyse();
+    parse->window = this;
+    thread = new QThread();
+//    qRegisterMetaType("paquet");
+
+       parse->moveToThread(thread);
+       connect(parse, SIGNAL(finished()), thread, SLOT(quit()), Qt::DirectConnection);
+       connect(parse, SIGNAL(tvalueChanged(unsigned char *, pcap_pkthdr)), this, SLOT(pcapChanged(unsigned char *, pcap_pkthdr)));
+       connect(thread, SIGNAL(started()), parse, SLOT(run()));
+      // connect(live, SIGNAL(finished()), thread, SLOT(quit()), Qt::DirectConnection);
+      // connect(live, SIGNAL(valueChanged(paquet&)), this, SLOT(on_pcap_analyse_valueChanged(Paquet&)));
+       qDebug()<<"Starting thread in Thread "<<this->QObject::thread()->currentThreadId();
+       run_pcap = 1;
+      // emit(live->run());
+       thread->start();
+       parse->requestPaquet(fileName);
+
+
+
+//    this->refreshtableWidget();
 //    proxyModel.setSourceModel( &model );
 
 //    if (!init){
@@ -140,18 +183,23 @@ void MainWindow::on_actionFilter_Capture_triggered()
 
 void MainWindow::on_actionStart_Capture_triggered()
 {
-    static int run = 0;
 
-    if (run == 1)
+    if (run_pcap == 1 || run_live == 1 )
     {
 //        ui->menuBar->
-        live->abort();
+        if (run_pcap == 1)
+            parse->abort();
+        if (run_live == 1)
+            live->abort();
         thread->wait();
-        run = 0;
+        run_pcap = 0;
+        run_live = 0;
         delete thread;
         delete live;
+        delete parse;
         return;
     }
+      proxyModel.clear();
 
 
     //live_analyse *tmp = new live_analyse();
@@ -160,7 +208,8 @@ void MainWindow::on_actionStart_Capture_triggered()
     live->window = this;
     thread = new QThread();
 //    qRegisterMetaType("paquet");
-    connect(live, SIGNAL(finished()), thread, SLOT(quit()), Qt::DirectConnection);
+    connect(live, SIGNAL(finished()), thread, SLOT(quit()) ,Qt::DirectConnection);
+//    connect(live, SIGNAL(finished()), this, SLOT(threadFinished()) ,Qt::DirectConnection);
     connect(live, SIGNAL(tvalueChanged(unsigned char *, int)), this, SLOT(testChanged(unsigned char *, int)));
 
        live->moveToThread(thread);
@@ -168,7 +217,7 @@ void MainWindow::on_actionStart_Capture_triggered()
       // connect(live, SIGNAL(finished()), thread, SLOT(quit()), Qt::DirectConnection);
       // connect(live, SIGNAL(valueChanged(paquet&)), this, SLOT(on_pcap_analyse_valueChanged(Paquet&)));
        qDebug()<<"Starting thread in Thread "<<this->QObject::thread()->currentThreadId();
-       run = 1;
+       run_live = 1;
       // emit(live->run());
        thread->start();
        live->requestPaquet();
@@ -183,7 +232,33 @@ void MainWindow::on_actionStart_Capture_triggered()
      paquet tmp = paquet(buffer, data_size);
      this->model.addPaquet(tmp); // .packets.push_back(tmp);
      this->refreshtableWidget();
-  //   this->ui->tableWidget->update();
-//..     this->ui->tableWidget->updatesEnabled();
+ }
+
+ void MainWindow::pcapChanged(unsigned char *buffer,  pcap_pkthdr header)
+ {
+     printf("paquet to add ___ here __:\n");
+     paquet tmp = paquet(buffer, header);
+     this->model.addPaquet(tmp); // .packets.push_back(tmp);
+     this->refreshtableWidget();
+ }
+ void MainWindow::threadFinished()
+ {
+
+    if (run_pcap == 1)
+        parse->abort();
+    if (run_live == 1)
+        live->abort();
+    run_live = 0;
+    run_pcap = 0;
+  //  thread->wait();
+    // thread->quit();
+    // delete thread;
+     delete parse;
+     delete live;
 
  }
+
+// void MainWindow::packetsChanged(unsigned char *buffer, int data_size)
+// {
+
+// }

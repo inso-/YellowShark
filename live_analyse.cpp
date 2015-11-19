@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <unistd.h>
 #include <netinet/if_ether.h>
+#include <fcntl.h>
 
 
 live_analyse::live_analyse(QObject *parent) :
@@ -37,6 +38,11 @@ void live_analyse::run()
     int sock_raw;
     unsigned char *buffer = (unsigned char *)malloc(65536); //Its Big!
     int nbyt;
+    fd_set toRead;
+    int sel;
+    struct timeval waitd;
+
+    waitd.tv_sec = 1;
 
     printf("try socket\n");
     sock_raw = socket(AF_PACKET , SOCK_RAW , htons(ETH_P_ALL));
@@ -45,11 +51,22 @@ void live_analyse::run()
        {
            printf("Socket Error\n");
            perror("The following error occurred");
-           //return ;
+           window->run_live = 0;
+           emit finished();
+           return ;
        }
+      int flags;
 
+      flags = fcntl(sock_raw, F_GETFL, 0);
+      if (flags == -1) {
+          close(sock_raw);
+          emit finished();
+         return; }
+      fcntl(sock_raw, F_SETFL, flags | O_NONBLOCK);
        while(1)
        {
+           FD_ZERO(&toRead);
+           FD_SET(sock_raw, &toRead);
        //    qDebug("while ");
            printf("while \n");
            mutex.lock();
@@ -77,6 +94,13 @@ void live_analyse::run()
            //Receive a packet
  //          qDebug("while 1");
            printf("while 4\n");
+
+           sel = select(sock_raw , &toRead, (fd_set*)0,(fd_set*)0, &waitd);
+           if (sel < 0)
+               continue;
+           if (FD_ISSET(sock_raw, &toRead))
+              {
+               FD_CLR(sock_raw, &toRead);
            data_size = recvfrom(sock_raw , buffer , 65536 , 0 , &saddr , (socklen_t*)&saddr_size);
            if(data_size <0 )
            {
@@ -91,7 +115,9 @@ void live_analyse::run()
         //   ref ->push_back(tmp);
 //           ProcessPacket(buffer , data_size);
        }
-//       }
+      }
+       close(sock_raw);
+       emit finished();
 }
 
 void live_analyse::abort()

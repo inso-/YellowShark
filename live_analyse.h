@@ -9,6 +9,7 @@
 #include <QWaitCondition>
 #include <QObject>
 #include <QMutex>
+
 class MainWindow;
 
 class live_analyse : public QObject

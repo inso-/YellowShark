@@ -140,14 +140,19 @@ private slots:
     public slots:
      void tableWidgetSelectionModel_currentRowChanged(QModelIndex newSelection,QModelIndex oldSelection);
      void testChanged(unsigned char *, int);
+     void pcapChanged(unsigned char *buffer,  pcap_pkthdr header);
+
+     void threadFinished();
 private:
+    int run_pcap;
+    int run_live;
     pcap_analyse *parse;
     live_analyse *live;
     Ui::MainWindow *ui;
     SendPacketWindow *sendwindow;
     FilterWindow *filterwindow;
 //public:
-    void getDataFromFile(void);
+    void getDataFromFile();
 
 };
 
