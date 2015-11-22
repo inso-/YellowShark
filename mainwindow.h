@@ -168,6 +168,8 @@ private:
     //void getDataFromFile();
     void clear();
     void addPaquet(paquet &tmp);
+
+    bool showPacket(paquet &p);
 };
 
 #endif // MAINWINDOW_H
