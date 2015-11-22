@@ -27,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableWidget->setModel(&model);
 
-    filter.protocol = "";
+    filter.protocol = "tcp,udp";
     filter.sourceIp = "";
     filter.sourcePort = "";
     filter.destinationIp = "";
@@ -195,13 +195,20 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
      filter = fil;
  }
 
+ bool MainWindow::checkFilterToken(const char *data, char *filter) {
+     char *token = strtok(filter, ",");
+     while (token != NULL) {
+         if (strcmp(data, token)) {
+             return false;
+         }
+         token = strtok(NULL, ",");
+     }
+ }
+
  bool MainWindow::showPacket(paquet &p) {
      if (filter.protocol && strlen(filter.protocol)) {
-         if (strcmp(p.type.c_str(), filter.protocol)) {
-             qDebug("diff protocol");
-             qDebug(p.type.c_str());
-             qDebug(filter.protocol);
-             return false;
+         if (checkFilterToken(p.type.c_str(), (char*) filter.protocol)) {
+                return false;
          }
      }
      if (filter.sourceIp && strlen(filter.sourceIp)) {

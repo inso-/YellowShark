@@ -169,6 +169,7 @@ private:
     void clear();
     void addPaquet(paquet &tmp);
 
+    bool checkFilterToken(const char *data, char *filter);
     bool showPacket(paquet &p);
 };
 
