@@ -4,6 +4,11 @@
 #include <QDialog>
 
 typedef struct s_filter{
+    const char *protocol;
+    const char *sourceIp;
+    const char *sourcePort;
+    const char *destinationIp;
+    const char *destinationPort;
 }filter;
 
 namespace Ui {
@@ -20,7 +25,7 @@ public:
 
 private:
     Ui::FilterWindow *ui;
-    filter filter;
+    s_filter filter;
 signals:
     void filterValueChanged(struct s_filter);
 private slots:

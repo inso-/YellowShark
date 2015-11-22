@@ -186,6 +186,7 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
  void MainWindow::filterChanged(struct s_filter fil)
  {
      filter = fil;
+     qDebug(filter.sourceIp);
  }
 
 
