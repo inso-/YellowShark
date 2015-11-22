@@ -52,7 +52,7 @@ void MainWindow::on_actionFilter_Capture_triggered()
 {
     qRegisterMetaType<struct s_filter>("filter");
     filterwindow = new FilterWindow();
-    connect(filterwindow, SIGNAL(filterValueChanged(filter)), this, SLOT(filterChanged(filter)));
+    connect(filterwindow, SIGNAL(filterValueChanged(struct s_filter)), this, SLOT(filterChanged(struct s_filter)));
 
     filterwindow->show();
 }
@@ -192,6 +192,7 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
 
  void MainWindow::filterChanged(struct s_filter fil)
  {
+     puts("LOL");
      filter = fil;
  }
 

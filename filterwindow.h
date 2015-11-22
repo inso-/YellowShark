@@ -25,7 +25,8 @@ public:
 
 private:
     Ui::FilterWindow *ui;
-    s_filter filter;
+    struct s_filter filter;
+
 signals:
     void filterValueChanged(struct s_filter);
 private slots:

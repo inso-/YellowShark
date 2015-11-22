@@ -151,7 +151,7 @@ public slots:
      void tableWidgetSelectionModel_currentRowChanged(QModelIndex newSelection,QModelIndex oldSelection);
      void testChanged(unsigned char *, int);
      void pcapChanged(unsigned char *buffer,  pcap_pkthdr header);
-     void filterChanged(filter fil);
+     void filterChanged(struct s_filter fil);
      void threadFinished();
 private:
     int run_pcap;
@@ -162,7 +162,7 @@ private:
     Ui::MainWindow *ui;
     SendPacketWindow *sendwindow;
     FilterWindow *filterwindow;
-    s_filter filter;
+    struct s_filter filter;
 
 //public:
     //void getDataFromFile();
