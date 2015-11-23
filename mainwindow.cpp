@@ -27,11 +27,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableWidget->setModel(&model);
 
-    filter.protocol = "tcp,udp";
+    filter.protocol = "";
     filter.sourceIp = "";
     filter.sourcePort = "";
     filter.destinationIp = "";
-    filter.destinationPort = "";
+    filter.destinationPort = "80,443";
 }
 
 MainWindow::~MainWindow()
@@ -171,7 +171,6 @@ void MainWindow::tableWidgetSelectionModel_currentRowChanged(QModelIndex newSele
 
 void MainWindow::on_tableWidget_activated(const QModelIndex &index)
 {
- //   qDebug("ok");
 }
 
  void MainWindow::testChanged(unsigned char *buffer, int data_size)
@@ -192,56 +191,52 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
 
  void MainWindow::filterChanged(struct s_filter fil)
  {
-     puts("LOL");
      filter = fil;
  }
 
- bool MainWindow::checkFilterToken(const char *data, char *filter) {
-     char *token = strtok(filter, ",");
+ bool MainWindow::checkFilterToken(char *data, char *filter) {
+     char *token = filter;
+     if (strstr(filter, ",") != NULL) {
+         token = strtok(filter, ",");
+     }
      while (token != NULL) {
-         if (strcmp(data, token)) {
-             return false;
+         if (strcmp(data, token) == 0) {
+             return true;
          }
          token = strtok(NULL, ",");
      }
+     return false;
  }
 
  bool MainWindow::showPacket(paquet &p) {
      if (filter.protocol && strlen(filter.protocol)) {
-         if (checkFilterToken(p.type.c_str(), (char*) filter.protocol)) {
-                return false;
+         if (!checkFilterToken((char*)p.type.c_str(), (char*) filter.protocol)) {
+             qDebug("exit protocol");
+            return false;
          }
      }
      if (filter.sourceIp && strlen(filter.sourceIp)) {
-         if (strcmp(p.source.c_str(), filter.sourceIp)) {
-             qDebug("diff source ip");
-             qDebug(p.source.c_str());
-             qDebug(filter.sourceIp);
-             return false;
+         if (!checkFilterToken((char*)p.source.c_str(), (char*) filter.sourceIp)) {
+             qDebug("exit sourceIp");
+            return false;
          }
      }
      if (filter.sourcePort && strlen(filter.sourcePort)) {
-         if (strcmp(p.sourcePort.c_str(), filter.sourcePort)) {
-             qDebug("diff source port");
-             qDebug(p.sourcePort.c_str());
-             qDebug(filter.sourcePort);
-             return false;
+         if (!checkFilterToken((char*)p.sourcePort.c_str(), (char*) filter.sourcePort)) {
+             qDebug("exit sourcePort");
+            return false;
          }
      }
      if (filter.destinationIp && strlen(filter.destinationIp)) {
-         if (strcmp(p.destination.c_str(), filter.destinationIp)) {
-             qDebug("diff dest ip");
-             qDebug(p.destination.c_str());
-             qDebug(filter.destinationIp);
-             return false;
+         if (!checkFilterToken((char*)p.destination.c_str(), (char*) filter.destinationIp)) {
+             qDebug("exit destinationIp");
+            return false;
          }
      }
      if (filter.destinationPort && strlen(filter.destinationPort)) {
-         if (strcmp(p.destinationPort.c_str(), filter.destinationPort)) {
-             qDebug("diff dest port");
-             qDebug(p.destinationPort.c_str());
-             qDebug(filter.destinationPort);
-             return false;
+         if (!checkFilterToken((char*)p.destinationPort.c_str(), strdup(filter.destinationPort))) {
+             qDebug("exit destinationPort");
+            return false;
          }
      }
      qDebug("add packet");
