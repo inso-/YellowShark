@@ -176,6 +176,7 @@ void MainWindow::tableWidgetSelectionModel_currentRowChanged(QModelIndex newSele
 
     ui->textBrowser->setText(data + FormatHexData(tmp.pkt_ptr, tmp.size));
     ui->textBrowser_2->setText(data + FormatData(tmp.pkt_ptr, tmp.size));
+    ui->textBrowser_3->setText(FormatHeaderData(&tmp));
 }
 
 void MainWindow::on_tableWidget_activated(const QModelIndex &index)
