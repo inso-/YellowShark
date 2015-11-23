@@ -264,7 +264,7 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
          }
      }
      if (filter.sourcePort && strlen(filter.sourcePort)) {
-         if (!checkFilterToken((char*)p.sourcePort.c_str(), (char*) filter.sourcePort)) {
+         if (!checkFilterToken((char*)p.sourcePort.c_str(), strdup(filter.sourcePort), true)) {
              qDebug("exit sourcePort");
             return false;
          }
