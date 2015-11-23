@@ -22,6 +22,7 @@ class FilterWindow : public QDialog
 public:
     explicit FilterWindow(QWidget *parent = 0);
     ~FilterWindow();
+    void setFilter(s_filter f);
 
 private:
     Ui::FilterWindow *ui;

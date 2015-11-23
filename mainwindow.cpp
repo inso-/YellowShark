@@ -55,6 +55,7 @@ void MainWindow::on_actionFilter_Capture_triggered()
     connect(filterwindow, SIGNAL(filterValueChanged(struct s_filter)), this, SLOT(filterChanged(struct s_filter)));
 
     filterwindow->show();
+    filterwindow->setFilter(filter);
 }
 
 void MainWindow::on_actionClear_Capture_triggered()
@@ -64,6 +65,11 @@ void MainWindow::on_actionClear_Capture_triggered()
 
 void MainWindow::on_actionClear_Filter_triggered()
 {
+    filter.protocol = "";
+    filter.sourceIp = "";
+    filter.sourcePort = "";
+    filter.destinationIp = "";
+    filter.destinationPort = "";
     model.packets.clear();
     for (std::vector<paquet>::iterator it = model.allPackets.begin(); it != model.allPackets.end(); ++it) {
         model.addPaquet(*it);
@@ -202,6 +208,14 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
  void MainWindow::filterChanged(struct s_filter fil)
  {
      filter = fil;
+
+     model.packets.clear();
+     for (std::vector<paquet>::iterator it = model.allPackets.begin(); it != model.allPackets.end(); ++it) {
+         if (showPacket(*it)) {
+            model.addPaquet(*it);
+            this->refreshtableWidget();
+         }
+     }
  }
 
  bool MainWindow::checkRangeFilter(char *data, char *filter) {
