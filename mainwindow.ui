@@ -74,6 +74,7 @@
     </property>
     <addaction name="actionStart_Capture"/>
     <addaction name="actionFilter_Capture"/>
+    <addaction name="actionClear_Filter"/>
     <addaction name="actionClear_Capture"/>
    </widget>
    <widget class="QMenu" name="menuForging">
@@ -129,6 +130,11 @@
   <action name="actionModify_and_Send_Selected_Packet">
    <property name="text">
     <string>Modify and Send Selected Packet</string>
+   </property>
+  </action>
+  <action name="actionClear_Filter">
+   <property name="text">
+    <string>Clear Filter</string>
    </property>
   </action>
  </widget>

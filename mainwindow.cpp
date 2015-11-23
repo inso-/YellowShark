@@ -62,6 +62,15 @@ void MainWindow::on_actionClear_Capture_triggered()
   this->clear();
 }
 
+void MainWindow::on_actionClear_Filter_triggered()
+{
+    model.packets.clear();
+    for (std::vector<paquet>::iterator it = model.allPackets.begin(); it != model.allPackets.end(); ++it) {
+        model.addPaquet(*it);
+    }
+    this->refreshtableWidget();
+}
+
 void MainWindow::on_actionOpen_triggered()
 {
     qRegisterMetaType<pcap_pkthdr>("pcap_pkthdr");
@@ -287,6 +296,7 @@ void MainWindow::addPaquet(paquet &tmp)
         this->model.addPaquet(tmp);
         this->refreshtableWidget();
     }
+    this->model.allPackets.push_back(tmp);
 }
 
 void MainWindow::clear()

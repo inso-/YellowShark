@@ -143,6 +143,7 @@ private slots:
     void on_actionFilter_Capture_triggered();
     void on_actionClear_Capture_triggered();
     void on_actionStart_Capture_triggered();
+    void on_actionClear_Filter_triggered();
 
     void on_actionSave_triggered();
 
