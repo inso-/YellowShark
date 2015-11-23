@@ -194,12 +194,22 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
      filter = fil;
  }
 
- bool MainWindow::checkFilterToken(char *data, char *filter) {
+ bool MainWindow::checkRangeFilter(char *data, char *filter) {
+     int first = atoi(strtok(filter, "-"));
+     int second = atoi(strtok(NULL, "-"));
+     int port = atoi(data);
+     return first <= port && second >= port;
+ }
+
+ bool MainWindow::checkFilterToken(char *data, char *filter, bool allow_range) {
      char *token = filter;
      if (strstr(filter, ",") != NULL) {
          token = strtok(filter, ",");
      }
      while (token != NULL) {
+         if (allow_range && strstr(token, "-") && checkRangeFilter(strdup(data), token)) {
+             return true;
+         }
          if (strcmp(data, token) == 0) {
              return true;
          }
@@ -234,7 +244,7 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
          }
      }
      if (filter.destinationPort && strlen(filter.destinationPort)) {
-         if (!checkFilterToken((char*)p.destinationPort.c_str(), strdup(filter.destinationPort))) {
+         if (!checkFilterToken((char*)p.destinationPort.c_str(), strdup(filter.destinationPort), true)) {
              qDebug("exit destinationPort");
             return false;
          }
