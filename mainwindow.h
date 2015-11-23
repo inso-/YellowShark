@@ -19,6 +19,7 @@ public slots:
     //void selectionChangedSlot(const QItemSelection &newSelection,const QItemSelection &oldSelection);
 public:
     std::vector<paquet> packets;
+    std::vector<paquet> allPackets;
 
     void clear()
     {

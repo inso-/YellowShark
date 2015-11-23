@@ -195,8 +195,16 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
  }
 
  bool MainWindow::checkRangeFilter(char *data, char *filter) {
-     int first = atoi(strtok(filter, "-"));
-     int second = atoi(strtok(NULL, "-"));
+     char *tmp = strtok(filter, "-");
+     if (tmp == NULL) {
+         return false;
+     }
+     int first = atoi(tmp);
+     tmp = strtok(NULL, "-");
+     if (tmp == NULL) {
+         return false;
+     }
+     int second = atoi(tmp);
      int port = atoi(data);
      return first <= port && second >= port;
  }
