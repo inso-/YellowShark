@@ -51,7 +51,7 @@ void live_analyse::run()
        {
            printf("Socket Error\n");
            perror("The following error occurred");
-           window->run_live = 0;
+           //window->run_live = 0;
            emit finished();
            return ;
        }
@@ -68,14 +68,14 @@ void live_analyse::run()
            FD_ZERO(&toRead);
            FD_SET(sock_raw, &toRead);
        //    qDebug("while ");
-           printf("while \n");
+       //    printf("while \n");
            mutex.lock();
                    if (!_interrupt && !_abort) {
                        condition.wait(&mutex);
                    }
                   // _interrupt = false;
                    //qDebug("whil2 ");
-                   printf("whil2 \n");
+           //        printf("whil2 \n");
                    if (_abort) {
                        qDebug() <<"Aborting worker mainLoop in Thread "<<thread()->currentThreadId();
                        mutex.unlock();
@@ -84,7 +84,7 @@ void live_analyse::run()
                        return;
                    }
                    //qDebug("whil3 ");
-                   printf("whil3 \n");
+               //    printf("whil3 \n");
 
                    //Method method = _method;
                    mutex.unlock();
@@ -93,13 +93,14 @@ void live_analyse::run()
            saddr_size = sizeof saddr;
            //Receive a packet
  //          qDebug("while 1");
-           printf("while 4\n");
+         //  printf("while 4\n");
 
-           sel = select(sock_raw , &toRead, (fd_set*)0,(fd_set*)0, &waitd);
+           sel = select(sock_raw + 1, &toRead, (fd_set*)0,(fd_set*)0, &waitd);
            if (sel < 0)
                continue;
            if (FD_ISSET(sock_raw, &toRead))
               {
+                printf("something to read\n");
                FD_CLR(sock_raw, &toRead);
            data_size = recvfrom(sock_raw , buffer , 65536 , 0 , &saddr , (socklen_t*)&saddr_size);
            if(data_size <0 )
