@@ -31,7 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
     filter.sourceIp = "";
     filter.sourcePort = "";
     filter.destinationIp = "";
-    filter.destinationPort = "80,443";
+    filter.destinationPort = "";
 }
 
 MainWindow::~MainWindow()
