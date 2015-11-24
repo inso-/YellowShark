@@ -45,7 +45,13 @@ void live_analyse::run()
     waitd.tv_sec = 1;
 
     printf("try socket\n");
+    #ifdef __APPLE__
+    // need usage of bpf see man bpf
+    //sock_raw = socket(PF_PACKET , SOCK_RAW , htons(0x0003));
+    #elif __WIN32
+    #else
     sock_raw = socket(AF_PACKET , SOCK_RAW , htons(ETH_P_ALL));
+    #endif
      printf("socket %d\n", sock_raw);
        if(sock_raw < 0)
        {

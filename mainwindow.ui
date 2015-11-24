@@ -74,6 +74,7 @@
     </property>
     <addaction name="actionStart_Capture"/>
     <addaction name="actionFilter_Capture"/>
+    <addaction name="actionClear_Capture"/>
    </widget>
    <widget class="QMenu" name="menuForging">
     <property name="title">
@@ -117,6 +118,11 @@
   <action name="actionSend_a_crafted_packet">
    <property name="text">
     <string>Send a crafted packet</string>
+   </property>
+  </action>
+  <action name="actionClear_Capture">
+   <property name="text">
+    <string>Clear Capture</string>
    </property>
   </action>
  </widget>

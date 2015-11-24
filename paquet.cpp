@@ -90,7 +90,7 @@ void paquet::build_ip_header()
    // ip_hdr->ip_dst = sin.sin_addr.s_addr;
     //Ip checksum
    // ip_hdr->ip_sum = this->csum ((unsigned short *) datagram, iph->tot_len);
-#eldef __WIN32
+#elif __WIN32
 #else
      ip_hdr = (struct iphdr *) datagram;
     //ip_hdr = (iphdr*)malloc(sizeof(iphdr));
@@ -140,7 +140,7 @@ void paquet::build_tcp_header()
     memcpy(pseudogram , (char*) &psh , sizeof (struct pseudo_header));
     memcpy(pseudogram + sizeof(struct pseudo_header) , tcp_hdr , sizeof(struct tcphdr) + strlen(data));
     tcp_hdr->th_sum = this->csum( (unsigned short*) pseudogram , psize);
-  #eldef __WIN32
+  #elif __WIN32
   #else
     tcp_hdr = (struct tcphdr *) (datagram + sizeof (struct iphdr));
     tcp_hdr->source = htons (1234);
@@ -216,7 +216,7 @@ void paquet::send()
         //Send the packet
      #ifdef __APPLE__
     if (sendto (s, datagram, ip_hdr->ip_tos,  0, (struct sockaddr *) &sin, sizeof (sin)) < 0)
-    #eldef __WIN32
+    #elif __WIN32
     #else
         if (sendto (s, datagram, ip_hdr->tos,  0, (struct sockaddr *) &sin, sizeof (sin)) < 0)
      #endif
@@ -228,7 +228,7 @@ void paquet::send()
         {
              #ifdef __APPLE__
             printf ("Packet Send. Length : %d \n" , ip_hdr->ip_tos);
-#eldef __WIN32
+#elif __WIN32
 #else
             printf ("Packet Send. Length : %d \n" , ip_hdr->tos);
              #endif
@@ -334,17 +334,18 @@ void paquet::parse_ip_header()
 {
     //parse the IP header
     pkt_ptr += ether_offset;  //skip past the Ethernet II header
-    ip_hdr = (struct iphdr *)pkt_ptr; //point to an IP header structure
 
 #ifdef __APPLE__
+     ip_hdr = (struct ip *)pkt_ptr;
     int packet_length = ntohs(ip_hdr->ip_len);
     this->size_ip = packet_length;
     this->source = inet_ntoa(ip_hdr->ip_src);
     this->destination = inet_ntoa(ip_hdr->ip_dst);
     this->get_protocol(ip_hdr->ip_p);
     qDebug("size header ip %d", this->size);
-#eldef __WIN32
+#elif __WIN32
 #else
+     ip_hdr = (struct iphdr *)pkt_ptr;
     int packet_length = ntohs(ip_hdr->tot_len);
     this->size_ip = packet_length;
     struct sockaddr_in ip_addr;
@@ -381,7 +382,7 @@ void paquet::parse_tcp_header()
     qDebug("   Dst port: %d\n", ntohs(tcp_hdr->th_dport));
     this->sourcePort = NumberToString(ntohs(tcp_hdr->th_sport));
     this->destinationPort = NumberToString(ntohs(tcp_hdr->th_dport));
-#eldef __WIN32
+#elif __WIN32
 #else
     int iphdrlen = ip_hdr->ihl * 4;
 
@@ -408,7 +409,7 @@ void paquet::parse_udp_header()
     udp_hdr = (struct udphdr*)(pkt_ptr + iphdrlen);
     this->sourcePort = NumberToString(ntohs(udp_hdr->uh_sport));
     this->destinationPort = NumberToString(ntohs(udp_hdr->uh_dport));
-#eldef __WIN32
+#elif __WIN32
 #else
     iphdrlen = ip_hdr->ihl * 4;
 
@@ -429,7 +430,7 @@ void paquet::parse_icmp_header()
     icmp_hdr = (struct icmphdr*)(pkt_ptr + iphdrlen);
  //   this->sourcePort = NumberToString(ntohs(udp_hdr->uh_sport));
  //   this->destinationPort = NumberToString(ntohs(udp_hdr->uh_dport));
-#eldef __WIN32
+#elif __WIN32
 #else
     iphdrlen = ip_hdr->ihl * 4;
 

@@ -19,6 +19,11 @@ public slots:
 public:
     std::vector<paquet> packets;
 
+    void clear()
+    {
+        packets.clear();
+    }
+
     int addPaquet(paquet packet)
     {
         emit beginInsertRows(QModelIndex(), packets.size(), packets.size());
@@ -134,7 +139,7 @@ private slots:
 
 
     void on_actionFilter_Capture_triggered();
-
+    void on_actionClear_Capture_triggered();
     void on_actionStart_Capture_triggered();
 
     public slots:
@@ -151,9 +156,11 @@ private:
     Ui::MainWindow *ui;
     SendPacketWindow *sendwindow;
     FilterWindow *filterwindow;
-//public:
-    void getDataFromFile();
 
+//public:
+    //void getDataFromFile();
+    void clear();
+    void addPaquet(paquet &tmp);
 };
 
 #endif // MAINWINDOW_H

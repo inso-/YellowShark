@@ -57,7 +57,7 @@ void pcap_analyse::run()
 {
     if(handle)
     {
-        while (packet = pcap_next(handle,&pcap_analyse::header)) {
+        while (packet = pcap_next(handle, &pcap_analyse::header)) {
             mutex.lock();
                     if (!_interrupt && !_abort) {
                         condition.wait(&mutex);

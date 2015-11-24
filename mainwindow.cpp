@@ -46,14 +46,20 @@ void MainWindow::on_actionFilter_Capture_triggered()
     filterwindow->show();
 }
 
+void MainWindow::on_actionClear_Capture_triggered()
+{
+  this->clear();
+}
+
 void MainWindow::on_actionOpen_triggered()
 {
     qRegisterMetaType<pcap_pkthdr>("pcap_pkthdr");
     this->threadFinished();
-    proxyModel.clear();
+        this->clear();
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open file"), "",tr("Files(*.pcap)"));
     if (fileName == "")
         return;
+
     parse = new pcap_analyse();
   parse->window = this;
   thread = new QThread();
@@ -183,18 +189,14 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
 
  void MainWindow::testChanged(unsigned char *buffer, int data_size)
  {
-     printf("paquet to add ___ here __:\n");
      paquet tmp = paquet(buffer, data_size);
-     this->model.addPaquet(tmp); // .packets.push_back(tmp);
-     this->refreshtableWidget();
+     this->addPaquet(tmp);
  }
 
  void MainWindow::pcapChanged(unsigned char *buffer,  pcap_pkthdr header)
  {
-     printf("paquet to add ___ here __:\n");
      paquet tmp = paquet(buffer, header);
-     this->model.addPaquet(tmp); // .packets.push_back(tmp);
-     this->refreshtableWidget();
+     this->addPaquet(tmp);
  }
 
  void MainWindow::threadFinished()
@@ -215,4 +217,17 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
          run_live = 0;
          return;
      }
+ }
+
+void MainWindow::addPaquet(paquet &tmp)
+{
+    this->model.addPaquet(tmp);
+    this->refreshtableWidget();
+}
+ void MainWindow::clear()
+ {
+     model.clear();
+     ui->textBrowser->clear();
+     ui->textBrowser_2->clear();
+     proxyModel.clear();
  }
