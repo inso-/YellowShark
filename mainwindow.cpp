@@ -231,3 +231,8 @@ void MainWindow::addPaquet(paquet &tmp)
      ui->textBrowser_2->clear();
      proxyModel.clear();
  }
+
+void MainWindow::on_actionSave_triggered()
+{
+
+}

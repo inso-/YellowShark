@@ -142,7 +142,9 @@ private slots:
     void on_actionClear_Capture_triggered();
     void on_actionStart_Capture_triggered();
 
-    public slots:
+    void on_actionSave_triggered();
+
+public slots:
      void tableWidgetSelectionModel_currentRowChanged(QModelIndex newSelection,QModelIndex oldSelection);
      void testChanged(unsigned char *, int);
      void pcapChanged(unsigned char *buffer,  pcap_pkthdr header);

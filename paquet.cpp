@@ -252,9 +252,11 @@ void paquet::init(u_char* pkt, int size)
     pkt_ptr = pkt;
     this->size = size;
     this->parse_ether_type();
-     if (this->ether_offset == -1)
+    if (this->ether_offset == -1)
          return;
-    if (this->ether_offset == 0)
+    else if (this->ether_offset == -2)
+        this->parse_ipv6_header();
+    else if (this->ether_offset == 0)
         this->parse_ipv6_header();
     else
         this->parse_ip_header();
@@ -272,6 +274,14 @@ void paquet::init(u_char* pkt, int size)
     qDebug("size header pcap %d", size);
 }
 
+void paquet::parse_arp_header()
+{
+    this->parse_ip_header();
+    arp_hdr = (struct arphdr *)(pkt_ptr +14);
+    this->type = "arp";
+  //  this->source =
+}
+
 void paquet::parse_ether_type()
 {
     int ether_type = ((int)(pkt_ptr[12]) << 8) | (int)pkt_ptr[13];
@@ -282,6 +292,8 @@ void paquet::parse_ether_type()
        ether_offset = 18;
     else if (ether_type == ETHER_TYPE_IPV6) // ip v6
         ether_offset = 0;
+    else if (ether_type == ETHER_TYPE_ARP)
+        ether_offset = -2;
     else
     {
         ether_offset = -1;
@@ -291,8 +303,8 @@ void paquet::parse_ether_type()
 
 void paquet::parse_ipv6_header()
 {
-    pkt_ptr += ether_offset;  //skip past the Ethernet II header
-    ipv6_hdr = (struct ipv6 *)pkt_ptr;
+    //pkt_ptr += ether_offset;  //skip past the Ethernet II header
+    ipv6_hdr = (struct ipv6 *)pkt_ptr + ether_offset;
     char straddr[INET6_ADDRSTRLEN];
 
     int packet_length = ntohs(ipv6_hdr->length);
@@ -333,10 +345,10 @@ void paquet::get_protocol(int proto)
 void paquet::parse_ip_header()
 {
     //parse the IP header
-    pkt_ptr += ether_offset;  //skip past the Ethernet II header
+  //  pkt_ptr += ether_offset;  //skip past the Ethernet II header
 
 #ifdef __APPLE__
-     ip_hdr = (struct ip *)pkt_ptr;
+     ip_hdr = (struct ip *)(pkt_ptr + ether_offset);
     int packet_length = ntohs(ip_hdr->ip_len);
     this->size_ip = packet_length;
     this->source = inet_ntoa(ip_hdr->ip_src);
@@ -345,7 +357,7 @@ void paquet::parse_ip_header()
     qDebug("size header ip %d", this->size);
 #elif __WIN32
 #else
-     ip_hdr = (struct iphdr *)pkt_ptr;
+     ip_hdr = (struct iphdr *)(pkt_ptr + ether_offset);
     int packet_length = ntohs(ip_hdr->tot_len);
     this->size_ip = packet_length;
     struct sockaddr_in ip_addr;
@@ -377,7 +389,7 @@ void paquet::parse_tcp_header()
 #ifdef __APPLE__
     int iphdrlen = ip_hdr->ip_hl * 4;
 
- tcp_hdr = (struct tcphdr*)(pkt_ptr + iphdrlen);
+ tcp_hdr = (struct tcphdr*)(pkt_ptr + ether_offset + iphdrlen);
     qDebug("   Src port: %d\n", ntohs(tcp_hdr->th_sport));
     qDebug("   Dst port: %d\n", ntohs(tcp_hdr->th_dport));
     this->sourcePort = NumberToString(ntohs(tcp_hdr->th_sport));
@@ -386,7 +398,7 @@ void paquet::parse_tcp_header()
 #else
     int iphdrlen = ip_hdr->ihl * 4;
 
-    tcp_hdr = (struct tcphdr*)(pkt_ptr + iphdrlen);
+    tcp_hdr = (struct tcphdr*)(pkt_ptr + ether_offset + iphdrlen);
 
     qDebug("   Src port: %d\n", ntohs(tcp_hdr->source));
     qDebug("   Dst port: %d\n", ntohs(tcp_hdr->dest));
@@ -406,14 +418,14 @@ void paquet::parse_udp_header()
 #ifdef __APPLE__
     iphdrlen = ip_hdr->ip_hl * 4;
 
-    udp_hdr = (struct udphdr*)(pkt_ptr + iphdrlen);
+    udp_hdr = (struct udphdr*)(pkt_ptr + ether_offset + iphdrlen);
     this->sourcePort = NumberToString(ntohs(udp_hdr->uh_sport));
     this->destinationPort = NumberToString(ntohs(udp_hdr->uh_dport));
 #elif __WIN32
 #else
     iphdrlen = ip_hdr->ihl * 4;
 
-    udp_hdr = (struct udphdr*)(pkt_ptr + iphdrlen);
+    udp_hdr = (struct udphdr*)(pkt_ptr + ether_offset + iphdrlen);
     this->sourcePort = NumberToString(ntohs(udp_hdr->source));
     this->destinationPort = NumberToString(ntohs(udp_hdr->dest));
 #endif
@@ -427,14 +439,14 @@ void paquet::parse_icmp_header()
 #ifdef __APPLE__
     iphdrlen = ip_hdr->ip_hl * 4;
 
-    icmp_hdr = (struct icmphdr*)(pkt_ptr + iphdrlen);
+    icmp_hdr = (struct icmphdr*)(pkt_ptr + ether_offset + iphdrlen);
  //   this->sourcePort = NumberToString(ntohs(udp_hdr->uh_sport));
  //   this->destinationPort = NumberToString(ntohs(udp_hdr->uh_dport));
 #elif __WIN32
 #else
     iphdrlen = ip_hdr->ihl * 4;
 
-    icmp_hdr = (struct icmphdr*)(pkt_ptr + iphdrlen);
+    icmp_hdr = (struct icmphdr*)(pkt_ptr + ether_offset + iphdrlen);
   //  this->sourcePort = NumberToString(ntohs(icmp_hdr->));
   //  this->destinationPort = NumberToString(ntohs(icmp_hdr->dest));
 #endif
