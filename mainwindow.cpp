@@ -232,7 +232,35 @@ void MainWindow::addPaquet(paquet &tmp)
      proxyModel.clear();
  }
 
+#include <stdio.h>
+#include <time.h>
+#include <unistd.h>
+
 void MainWindow::on_actionSave_triggered()
 {
+  pcap_t *handle = pcap_open_dead(DLT_EN10MB, 1 << 16);
 
+  char CurrentPath[FILENAME_MAX];
+  getcwd(CurrentPath, sizeof(CurrentPath));
+  CurrentPath[sizeof(CurrentPath) - 1] = '\0';
+
+  time_t rawtime;
+  struct tm * timeinfo;
+  char buffer[80];
+  time(&rawtime);
+  timeinfo = localtime(&rawtime);
+  strftime(buffer, 80, "/pcapFile/%d%m%y_%H%M%S.pcap", timeinfo);
+  strcat(CurrentPath, buffer);
+
+  pcap_dumper_t *dumper = pcap_dump_open(handle, CurrentPath);
+  pcap_pkthdr	pcap_hdr;
+  pcap_hdr.caplen = sizeof(uchar *);
+  pcap_hdr.len = pcap_hdr.caplen;
+
+  for (std::vector<paquet>::iterator it = model.packets.begin();
+       it != model.packets.end(); ++it) {
+    pcap_dump((uchar *)dumper, &pcap_hdr, it->pkt_ptr);
+  }
+  pcap_dump_close(dumper);
+  std::cout << "Save done. At " << CurrentPath << std::endl;
 }
