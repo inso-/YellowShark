@@ -89,7 +89,7 @@ void paquet::build_ip_header()
    // ip_hdr->ip_src = inet_addr ( this->source.c_str() );    //Spoof the source ip address
    // ip_hdr->ip_dst = sin.sin_addr.s_addr;
     //Ip checksum
-   // ip_hdr->ip_sum = this->csum ((unsigned short *) datagram, iph->tot_len);
+   // ip_hdr->ip_sum = this-> ((unsigned short *) datagram, iph->tot_len);
 #elif __WIN32
 #else
      ip_hdr = (struct iphdr *) datagram;
@@ -255,7 +255,7 @@ void paquet::init(u_char* pkt, int size)
     if (this->ether_offset == -1)
          return;
     else if (this->ether_offset == -2)
-        this->parse_ipv6_header();
+        this->parse_arp_header();
     else if (this->ether_offset == 0)
         this->parse_ipv6_header();
     else
@@ -276,8 +276,9 @@ void paquet::init(u_char* pkt, int size)
 
 void paquet::parse_arp_header()
 {
+    ether_offset = 14;
     this->parse_ip_header();
-    arp_hdr = (struct arphdr *)(pkt_ptr +14);
+    arp_hdr = (struct arphdr *)(pkt_ptr + ether_offset);
     this->type = "arp";
   //  this->source =
 }

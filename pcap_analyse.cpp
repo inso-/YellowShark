@@ -29,11 +29,11 @@ void pcap_analyse::requestPaquet(QString filename)
 
 void pcap_analyse::run()
 {
-  const u_char * data;
+  u_char * data;
   struct pcap_pkthdr *pkt_hdr;
   if(handle)
     {
-      while (int returnValue = pcap_next_ex(handle, &pkt_hdr, &data) >= 0) {
+      while (int returnValue = pcap_next_ex(handle, &pkt_hdr, const_cast<const u_char**>(&data)) >= 0) {
 	mutex.lock();
 	if (!_interrupt && !_abort) {
 	  condition.wait(&mutex);
@@ -48,7 +48,8 @@ void pcap_analyse::run()
 	mutex.unlock();
 	QDateTime timestamp;
 	qDebug(timestamp.toString().toLatin1());
-	emit tvalueChanged(const_cast<uchar *> (data), *pkt_hdr);
+    emit tvalueChanged(const_cast<uchar *> (data), *pkt_hdr);
+  //  pkt_hdr = malloc(sizeof(struct_pkthdr));
       } //end internal loop for reading packets (all in one file)
       pcap_close(handle);
     }
