@@ -191,7 +191,6 @@ void paquet::build_tcp_header()
     tcp_hdr->window = htons (5840); /* maximum allowed window size */
     tcp_hdr->check = 0; //leave checksum 0 now, filled later by pseudo header
     tcp_hdr->urg_ptr = 0;
-
   //  psh.source_address = inet_addr( source.c_str() );
   //  psh.dest_address = sin.sin_addr.s_addr;
   //  psh.placeholder = 0;
@@ -511,13 +510,10 @@ void paquet::parse_tcp_header()
 //
 
 #ifdef __APPLE__
-    int iphdrlen = ip_hdr->ip_hl * 4;
 
- tcp_hdr = (struct tcphdr*)(pkt_ptr + ether_offset + iphdrlen);
-    qDebug("   Src port: %d\n", ntohs(tcp_hdr->th_sport));
-    qDebug("   Dst port: %d\n", ntohs(tcp_hdr->th_dport));
     this->sourcePort = NumberToString(ntohs(tcp_hdr->th_sport));
     this->destinationPort = NumberToString(ntohs(tcp_hdr->th_dport));
+    data = (char*) (pkt_ptr + ether_offset + iphdrlen + sizeof(tcphdr));
 #elif __WIN32
 #else
     int iphdrlen = ip_hdr->ihl * 4;
@@ -529,6 +525,7 @@ void paquet::parse_tcp_header()
     this->sourcePort = NumberToString(ntohs(tcp_hdr->dest));
     this->destinationPort = NumberToString(ntohs(tcp_hdr->source));
 #endif
+    data = (char*) (pkt_ptr + ether_offset + iphdrlen + sizeof(tcphdr));
 
 
        //struct tcphdr *tcph=(struct tcphdr*)(Buffer + iphdrlen);
@@ -553,6 +550,7 @@ void paquet::parse_udp_header()
     this->sourcePort = NumberToString(ntohs(udp_hdr->source));
     this->destinationPort = NumberToString(ntohs(udp_hdr->dest));
 #endif
+    data = (char*) (pkt_ptr + ether_offset + iphdrlen + sizeof(udphdr));
 }
 void paquet::parse_icmp_header()
 {
@@ -576,5 +574,6 @@ void paquet::parse_icmp_header()
 #endif
      this->sourcePort = "no";
      this->destinationPort = "no";
+     data = (char*) (pkt_ptr + ether_offset + iphdrlen + sizeof(icmphdr));
 }
 

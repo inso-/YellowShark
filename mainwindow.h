@@ -162,7 +162,7 @@ private:
     Ui::MainWindow *ui;
     SendPacketWindow *sendwindow;
     FilterWindow *filterwindow;
-    filter filter;
+    struct s_filter filter;
 
 //public:
     //void getDataFromFile();

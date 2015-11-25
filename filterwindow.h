@@ -20,7 +20,7 @@ public:
 
 private:
     Ui::FilterWindow *ui;
-    filter filter;
+    struct s_filter filter;
 signals:
     void filterValueChanged(struct s_filter);
 private slots:
