@@ -12,3 +12,8 @@ FilterWindow::~FilterWindow()
 {
     delete ui;
 }
+
+void FilterWindow::on_buttonBox_accepted()
+{
+    emit filterValueChanged(filter);
+}

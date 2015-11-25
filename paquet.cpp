@@ -70,6 +70,24 @@ unsigned short paquet::csum(unsigned short *ptr,int nbytes)
     return(answer);
 }
 
+//void paquet::modify(std::string type, std::string source,std::string sourceport, std::string destination,std::string destinationport, std::string data)
+//{
+//    this->source = source;
+//    this->type = type;
+//    this->destination = destination;
+//    this->destinationPort = destinationport;
+//    this->sourcePort = sourceport;
+//    this->payload = data;
+//    this->build_data_part();
+//    this->build_ip_header();
+//    if (type == "tcp")
+//        this->build_tcp_header();
+//    if (type == "udp")
+//        this->build_udp_header();
+//    if (type == "icmp")
+//        this->build_icmp_header();
+//}
+
 
 void paquet::build_ip_header()
 {
@@ -130,8 +148,8 @@ void paquet::build_tcp_header()
   //tcp_hdr = (tcphdr*)malloc(sizeof(tcphdr));
   #ifdef __APPLE__
     tcp_hdr = (struct tcphdr *) (datagram + sizeof (struct ip));
-    tcp_hdr->th_sport = htons (atol(sourcePort.c_str());
-    tcp_hdr->th_dport = htons (atol(destinationPort.c_str());
+    tcp_hdr->th_sport = htons (atol(sourcePort.c_str()));
+    tcp_hdr->th_dport = htons (atol(destinationPort.c_str()));
     tcp_hdr->th_seq = 0;
     tcp_hdr->th_ack = 0;
     tcp_hdr->th_off = 5;  //tcp header size
@@ -144,18 +162,18 @@ void paquet::build_tcp_header()
     tcp_hdr->th_win = htons (5840); /* maximum allowed window size */
     tcp_hdr->th_sum = 0; //leave checksum 0 now, filled later by pseudo header
     //tcp_hdr-> urg_ptr = 0;
-    psh.source_address = inet_addr( source.c_str() );
-    psh.dest_address = sin.sin_addr.s_addr;
-    psh.placeholder = 0;
-    psh.protocol = IPPROTO_TCP;
-    psh.tcp_length = htons(sizeof(struct tcphdr) + strlen(data) );
+//    psh.source_address = inet_addr( source.c_str() );
+//    psh.dest_address = sin.sin_addr.s_addr;
+//    psh.placeholder = 0;
+//    psh.protocol = IPPROTO_TCP;
+//    psh.tcp_length = htons(sizeof(struct tcphdr) + strlen(data) );
 
-    int psize = sizeof(struct pseudo_header) + sizeof(struct tcphdr) + strlen(data);
-    pseudogram = (char*)malloc(psize);
+//    int psize = sizeof(struct pseudo_header) + sizeof(struct tcphdr) + strlen(data);
+//    pseudogram = (char*)malloc(psize);
 
-    memcpy(pseudogram , (char*) &psh , sizeof (struct pseudo_header));
-    memcpy(pseudogram + sizeof(struct pseudo_header) , tcp_hdr , sizeof(struct tcphdr) + strlen(data));
-    tcp_hdr->th_sum = this->csum( (unsigned short*) pseudogram , psize);
+//    memcpy(pseudogram , (char*) &psh , sizeof (struct pseudo_header));
+//    memcpy(pseudogram + sizeof(struct pseudo_header) , tcp_hdr , sizeof(struct tcphdr) + strlen(data));
+//    tcp_hdr->th_sum = this->csum( (unsigned short*) pseudogram , psize);
   #elif __WIN32
   #else
     tcp_hdr = (struct tcphdr *) (datagram + sizeof (struct iphdr));
@@ -196,24 +214,38 @@ void paquet::build_tcp_header()
 
 void paquet::build_icmp_header()
 {
+     #ifdef __APPLE__
+    icmp_hdr = (struct icmphdr *) (datagram + sizeof (struct ip));
+#elif __WIN32
+#else
+
     icmp_hdr = (struct icmphdr *) (datagram + sizeof (struct iphdr));
     icmp_hdr->type = 8; // echo
     icmp_hdr->code = 0;
+     #endif
+
 }
 
 void paquet::build_udp_header()
 {
+      #ifdef __APPLE__
+#elif __WIN32
+#else
     udp_hdr = (struct udphdr *) (datagram + sizeof (struct iphdr));
     udp_hdr->source = htons (atol(sourcePort.c_str()));
     udp_hdr->dest = htons (atol(destinationPort.c_str()));
     udp_hdr->len = (8 + strlen(this->data));
     udp_hdr->check = ip_hdr->check;
+#endif
 }
 
 void paquet::build_data_part()
 {
     //Data part
     memset (datagram, 0, 4096);
+#ifdef __APPLE__
+#elif __WIN32
+#else
     if (type == "tcp")
         data = datagram + sizeof(struct ip) + sizeof(struct tcphdr);
     else if (type == "upd")
@@ -222,16 +254,17 @@ void paquet::build_data_part()
          data = datagram + sizeof(struct ip) + sizeof(struct icmphdr);
     else
         data = datagram + sizeof(struct ip);
+#endif
     strcpy(data , payload.c_str());
 
     //some address resolution
    // strcpy(source_ip , "192.168.1.2");
     sin.sin_family = AF_INET;
-    din.sin_family = AF_INET;
+   // din.sin_family = AF_INET;
     sin.sin_port = htons(atol(sourcePort.c_str()));
     sin.sin_addr.s_addr = inet_addr (source.c_str());
-    din.sin_port = htons(atol(sourcePort.c_str()));
-    din.sin_addr.s_addr = inet_addr (source.c_str());
+   // din.sin_port = htons(atol(sourcePort.c_str()));
+   // din.sin_addr.s_addr = inet_addr (source.c_str());
 }
 
 void paquet::send(int nb)
@@ -265,7 +298,7 @@ void paquet::send(int nb)
         nb--;
         //Send the packet
      #ifdef __APPLE__
-    if (sendto (s, datagram, ip_hdr->ip_tot,  0, (struct sockaddr *) &sin, sizeof (sin)) < 0)
+    if (sendto (s, datagram, ip_hdr->ip_len,  0, (struct sockaddr *) &sin, sizeof (sin)) < 0)
     #elif __WIN32
     #else
         if (sendto (s, datagram, ip_hdr->tot_len,  0, (struct sockaddr *) &sin, sizeof (sin)) < 0)
@@ -277,7 +310,7 @@ void paquet::send(int nb)
         else
         {
              #ifdef __APPLE__
-            printf ("Packet Send. Length : %d \n" , ip_hdr->ip_tos);
+            printf ("Packet Send. Length : %d \n" , ip_hdr->ip_len);
 #elif __WIN32
 #else
             printf ("Packet Send. Length : %d \n" , ip_hdr->tot_len);
@@ -327,9 +360,14 @@ void paquet::init(u_char* pkt, int size)
 void paquet::parse_arp_header()
 {
     ether_offset = 14;
-    this->parse_ip_header();
-    arp_hdr = (struct arphdr *)(pkt_ptr + ether_offset);
+   // this->parse_ip_header();
+    arp_hdr = (struct arphdr_s *)(pkt_ptr + ether_offset);
     this->type = "arp";
+    std::string dest(arp_hdr->sha, arp_hdr->spa);
+    this->destination = dest;
+    std::string sou(arp_hdr->tha, arp_hdr->tpa);
+     this->source = sou;
+  //  this->destination += arp_hdr->spa;
   //  this->source =
 }
 
@@ -539,5 +577,4 @@ void paquet::parse_icmp_header()
      this->sourcePort = "no";
      this->destinationPort = "no";
 }
-
 

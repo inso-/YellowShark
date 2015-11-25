@@ -58,7 +58,7 @@
      <x>0</x>
      <y>0</y>
      <width>939</width>
-     <height>22</height>
+     <height>29</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -81,6 +81,7 @@
      <string>Forging</string>
     </property>
     <addaction name="actionSend_a_crafted_packet"/>
+    <addaction name="actionModify_and_Send_Selected_Packet"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuCapture"/>
@@ -123,6 +124,11 @@
   <action name="actionClear_Capture">
    <property name="text">
     <string>Clear Capture</string>
+   </property>
+  </action>
+  <action name="actionModify_and_Send_Selected_Packet">
+   <property name="text">
+    <string>Modify and Send Selected Packet</string>
    </property>
   </action>
  </widget>

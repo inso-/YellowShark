@@ -3,6 +3,9 @@
 
 #include <QDialog>
 
+typedef struct s_filter{
+}filter;
+
 namespace Ui {
 class FilterWindow;
 }
@@ -17,6 +20,11 @@ public:
 
 private:
     Ui::FilterWindow *ui;
+    filter filter;
+signals:
+    void filterValueChanged(struct s_filter);
+private slots:
+    void on_buttonBox_accepted();
 };
 
 #endif // FILTERWINDOW_H

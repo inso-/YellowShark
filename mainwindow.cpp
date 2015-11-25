@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     run_pcap = 0;
     run_live = 0;
+    selected = -1;
     ui->tableWidget->setSortingEnabled(true);
     ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableWidget->setModel(&model);
@@ -42,7 +43,10 @@ void MainWindow::on_actionSend_a_crafted_packet_triggered()
 
 void MainWindow::on_actionFilter_Capture_triggered()
 {
+    qRegisterMetaType<struct s_filter>("filter");
     filterwindow = new FilterWindow();
+    connect(filterwindow, SIGNAL(filterValueChanged(filter)), this, SLOT(filterChanged(filter)));
+
     filterwindow->show();
 }
 
@@ -148,6 +152,7 @@ void MainWindow::tableWidgetSelectionModel_currentRowChanged(QModelIndex newSele
 {
       //QString data = QString::fromUtf8((char*);
     QString data;
+    selected = newSelection.row();
     paquet tmp = model.packets.at(newSelection.row());
 
     data += "source:" + QString::fromStdString(tmp.source) + "\n";
@@ -177,6 +182,12 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
      paquet tmp = paquet(copy, header);
      this->addPaquet(tmp);
  }
+
+ void MainWindow::filterChanged(struct s_filter fil)
+ {
+     filter = fil;
+ }
+
 
  void MainWindow::threadFinished()
  {
@@ -209,6 +220,7 @@ void MainWindow::addPaquet(paquet &tmp)
      ui->textBrowser->clear();
      ui->textBrowser_2->clear();
      proxyModel.clear();
+     selected = -1;
  }
 
 #include <stdio.h>
@@ -254,4 +266,15 @@ void MainWindow::on_actionSave_triggered()
   //  pcap_dump((uchar *)dumper, &pcap_hdr, (const uchar*)pkt_data.c_str());
   pcap_dump_close(dumper);
   std::cout << "Save done. At " << CurrentPath << std::endl;
+}
+
+void MainWindow::on_actionModify_and_Send_Selected_Packet_triggered()
+{
+    if (selected == -1)
+        return;
+    paquet tmp = model.packets.at(selected);
+    printf("%s", tmp.source.c_str());
+    sendwindow = new SendPacketWindow(); // Be sure to destroy you window somewhere
+    sendwindow->fromPaquet(&tmp);
+    sendwindow->show();
 }

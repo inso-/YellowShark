@@ -13,7 +13,6 @@
 #include<netinet/udp.h>   //Provides declarations for udp header
 #include<netinet/tcp.h>   //Provides declarations for tcp header
 #include<netinet/ip.h>    //Provides declarations for ip header
-//#include<netinet/ipv6.h>
 
 struct ipv6
 {
@@ -37,17 +36,17 @@ struct ipv6
 //    u_int16_t tcp_length;
 //};
 
-//typedef struct arphdr {
-//    u_int16_t htype;    /* Hardware Type           */
-//    u_int16_t ptype;    /* Protocol Type           */
-//    u_char hlen;        /* Hardware Address Length */
-//    u_char plen;        /* Protocol Address Length */
-//    u_int16_t oper;     /* Operation Code          */
-//    u_char sha[6];      /* Sender hardware address */
-//    u_char spa[4];      /* Sender IP address       */
-//    u_char tha[6];      /* Target hardware address */
-//    u_char tpa[4];      /* Target IP address       */
-//}arphdr_t;
+typedef struct arphdr_s {
+    u_int16_t htype;    /* Hardware Type           */
+    u_int16_t ptype;    /* Protocol Type           */
+    u_char hlen;        /* Hardware Address Length */
+    u_char plen;        /* Protocol Address Length */
+    u_int16_t oper;     /* Operation Code          */
+    u_char sha[6];      /* Sender hardware address */
+    u_char spa[4];      /* Sender IP address       */
+    u_char tha[6];      /* Target hardware address */
+    u_char tpa[4];      /* Target IP address       */
+}arphdr_t;
 
 
 #define ETHER_TYPE_IP (0x0800)
@@ -88,9 +87,9 @@ public:
     struct tcphdr *tcp_hdr;     // tcp header struct
     struct udphdr *udp_hdr;     // udp header struct
     struct icmphdr *icmp_hdr;
-    struct arphdr *arp_hdr;
+    struct arphdr_s *arp_hdr;
     struct sockaddr_in sin;
-    struct sockaddr_in din;
+   // struct sockaddr_in din;
    // struct pseudo_header psh;
     char datagram[4096];
     char *pseudogram;

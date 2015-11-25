@@ -10,6 +10,7 @@
 #include <filterwindow.h>
 #include <pcap_analyse.h>
 #include <QThread>
+#include "filterwindow.h"
 #include "paquet.h"
 
 class TestModel : public QAbstractTableModel
@@ -144,20 +145,24 @@ private slots:
 
     void on_actionSave_triggered();
 
+    void on_actionModify_and_Send_Selected_Packet_triggered();
+
 public slots:
      void tableWidgetSelectionModel_currentRowChanged(QModelIndex newSelection,QModelIndex oldSelection);
      void testChanged(unsigned char *, int);
      void pcapChanged(unsigned char *buffer,  pcap_pkthdr header);
-
+     void filterChanged(filter fil);
      void threadFinished();
 private:
     int run_pcap;
     int run_live;
+    int selected;
     pcap_analyse *parse;
     live_analyse *live;
     Ui::MainWindow *ui;
     SendPacketWindow *sendwindow;
     FilterWindow *filterwindow;
+    filter filter;
 
 //public:
     //void getDataFromFile();
