@@ -130,8 +130,8 @@ void paquet::build_tcp_header()
   //tcp_hdr = (tcphdr*)malloc(sizeof(tcphdr));
   #ifdef __APPLE__
     tcp_hdr = (struct tcphdr *) (datagram + sizeof (struct ip));
-    tcp_hdr->th_sport = htons (1234);
-    tcp_hdr->th_dport = htons (80);
+    tcp_hdr->th_sport = htons (atol(sourcePort.c_str());
+    tcp_hdr->th_dport = htons (atol(destinationPort.c_str());
     tcp_hdr->th_seq = 0;
     tcp_hdr->th_ack = 0;
     tcp_hdr->th_off = 5;  //tcp header size
@@ -159,8 +159,8 @@ void paquet::build_tcp_header()
   #elif __WIN32
   #else
     tcp_hdr = (struct tcphdr *) (datagram + sizeof (struct iphdr));
-    tcp_hdr->source = htons (1234);
-    tcp_hdr->dest = htons (80);
+    tcp_hdr->source = htons (atol(sourcePort.c_str()));
+    tcp_hdr->dest = htons (atol(destinationPort.c_str()));
     tcp_hdr->seq = 0;
     tcp_hdr->ack_seq = 0;
     tcp_hdr->doff = 5;  //tcp header size
@@ -183,7 +183,7 @@ void paquet::build_tcp_header()
    // int psize = sizeof(struct pseudo_header) + sizeof(struct tcphdr) + strlen(data);
     //pseudogram = (char*)malloc(psize);
    // tcp_hdr->check = csum( (unsigned short*) pseudogram , psize);
-   // ip_hdr->check = tcp_hdr->check;
+    ip_hdr->check = csum((unsigned short*) datagram, ip_hdr->tot_len);
 
 //    memcpy(pseudogram , (char*) &ip_hdr , sizeof (struct pseudo_header));
  //   memcpy(pseudogram + sizeof(struct ip_hdr) , tcp_hdr , sizeof(struct tcphdr) + strlen(data));
@@ -196,12 +196,18 @@ void paquet::build_tcp_header()
 
 void paquet::build_icmp_header()
 {
-
+    icmp_hdr = (struct icmphdr *) (datagram + sizeof (struct iphdr));
+    icmp_hdr->type = 8; // echo
+    icmp_hdr->code = 0;
 }
 
 void paquet::build_udp_header()
 {
-
+    udp_hdr = (struct udphdr *) (datagram + sizeof (struct iphdr));
+    udp_hdr->source = htons (atol(sourcePort.c_str()));
+    udp_hdr->dest = htons (atol(destinationPort.c_str()));
+    udp_hdr->len = (8 + strlen(this->data));
+    udp_hdr->check = ip_hdr->check;
 }
 
 void paquet::build_data_part()
@@ -375,6 +381,41 @@ void paquet::get_protocol(int proto)
         qDebug("alert proto %d not found", proto);
     switch (proto)
     {
+    case 24:
+    {
+         this->type = "trunk2";
+        break;
+    }
+    case 116:
+    {
+         this->type = "trunk2";
+        break;
+    }
+    case 64:
+    {
+        this->type = "sat-expak";
+        break;
+    }
+    case 40:
+    {
+         this->type = "il";
+        break;
+    }
+    case 41:
+    {
+         this->type = "ilv6";
+        break;
+    }
+    case 96:
+    {
+         this->type = "scc-sp";
+        break;
+    }
+    case 104:
+    {
+        this->type = "aris";
+        break;
+    }
     case 142:
     {
         this->type = "rohc";
