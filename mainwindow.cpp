@@ -55,25 +55,25 @@ void MainWindow::on_actionOpen_triggered()
 {
     qRegisterMetaType<pcap_pkthdr>("pcap_pkthdr");
     this->threadFinished();
-        this->clear();
+    this->clear();
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open file"), "",tr("Files(*.pcap)"));
     if (fileName == "")
         return;
 
     parse = new pcap_analyse();
-  parse->window = this;
-  thread = new QThread();
-     parse->moveToThread(thread);
-     connect(parse, SIGNAL(finished()), thread, SLOT(quit()), Qt::DirectConnection);
-     connect(parse, SIGNAL(tvalueChanged(unsigned char *, pcap_pkthdr)), this, SLOT(pcapChanged(unsigned char *, pcap_pkthdr)));
-     connect(thread, SIGNAL(started()), parse, SLOT(run()));
+    parse->window = this;
+    thread = new QThread();
+    parse->moveToThread(thread);
+    connect(parse, SIGNAL(finished()), thread, SLOT(quit()), Qt::DirectConnection);
+    connect(parse, SIGNAL(tvalueChanged(unsigned char *, pcap_pkthdr)), this, SLOT(pcapChanged(unsigned char *, pcap_pkthdr)));
+    connect(thread, SIGNAL(started()), parse, SLOT(run()));
     // connect(live, SIGNAL(finished()), thread, SLOT(quit()), Qt::DirectConnection);
     // connect(live, SIGNAL(valueChanged(paquet&)), this, SLOT(on_pcap_analyse_valueChanged(Paquet&)));
-     qDebug()<<"Starting thread in Thread "<<this->QObject::thread()->currentThreadId();
-     run_pcap = 1;
+    qDebug()<<"Starting thread in Thread "<<this->QObject::thread()->currentThreadId();
+    run_pcap = 1;
     // emit(live->run());
-     thread->start();
-     parse->requestPaquet(fileName);
+    thread->start();
+    parse->requestPaquet(fileName);
 }
 
 
@@ -257,10 +257,18 @@ void MainWindow::on_actionSave_triggered()
   pcap_hdr.caplen = sizeof(uchar *);
   pcap_hdr.len = pcap_hdr.caplen;
 
+  //  std::string pkt_data = "";
+
   for (std::vector<paquet>::iterator it = model.packets.begin();
        it != model.packets.end(); ++it) {
+    pcap_hdr.caplen = it->size; //+ it->ether_offset;
+    pcap_hdr.len = it->size; //+ it->ether_offset;
+    pcap_hdr.ts.tv_sec = it->date.toTime_t();
+    pcap_hdr.ts.tv_usec = it->date.time().msec() * 1000;//(it->date.toMSecsSinceEpoch() - QDateTime::currentMSecsSinceEpoch()) * 1000;
     pcap_dump((uchar *)dumper, &pcap_hdr, it->pkt_ptr);
+    //    pkt_data << it->pkt_ptr;
   }
+  //  pcap_dump((uchar *)dumper, &pcap_hdr, (const uchar*)pkt_data.c_str());
   pcap_dump_close(dumper);
   std::cout << "Save done. At " << CurrentPath << std::endl;
 }
