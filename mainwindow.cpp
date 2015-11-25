@@ -169,7 +169,11 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
 
  void MainWindow::pcapChanged(unsigned char *buffer,  pcap_pkthdr header)
  {
-     paquet tmp = paquet(buffer, header);
+     unsigned char *copy = (unsigned char*) malloc (sizeof(unsigned char) * header.len);
+     void *ptr1 = (char*)copy;
+     void *ptr2 = (char*)buffer;
+     copy = (unsigned char*)memcpy(ptr1, ptr2 , header.len);
+     paquet tmp = paquet(copy, header);
      this->addPaquet(tmp);
  }
 
