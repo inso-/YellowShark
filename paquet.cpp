@@ -38,7 +38,12 @@ paquet::paquet(std::string type, std::string source,std::string sourceport, std:
     this->payload = data;
     this->build_data_part();
     this->build_ip_header();
-    this->build_tcp_header();
+    if (type == "tcp")
+        this->build_tcp_header();
+    if (type == "udp")
+        this->build_udp_header();
+    if (type == "icmp")
+        this->build_icmp_header();
 }
 
 unsigned short paquet::csum(unsigned short *ptr,int nbytes)
@@ -96,15 +101,26 @@ void paquet::build_ip_header()
     //ip_hdr = (iphdr*)malloc(sizeof(iphdr));
     ip_hdr->ihl = 5;
         ip_hdr->version = 4;
-        ip_hdr->tos = 0;
+        ip_hdr->tos = 16;
+        if (type == "tcp")
         ip_hdr->tot_len = sizeof (struct iphdr) + sizeof (struct tcphdr) + strlen(data);
+        else if (type == "udp")
+            ip_hdr->tot_len = sizeof (struct iphdr) + sizeof (struct udphdr) + strlen(data);
+        else if (type == "icmp")
+            ip_hdr->tot_len = sizeof (struct iphdr) + sizeof (struct icmphdr) + strlen(data);
+
         ip_hdr->id = htonl (54321); //Id of this packet
         ip_hdr->frag_off = 0;
         ip_hdr->ttl = 255;
-        ip_hdr->protocol = IPPROTO_TCP;
+        if (this->type == "tcp")
+            ip_hdr->protocol = IPPROTO_TCP;
+        if (this->type == "udp")
+            ip_hdr->protocol = IPPROTO_UDP;
+        if (this->type == "icmp")
+            ip_hdr->protocol = IPPROTO_ICMP;
         ip_hdr->check = 0;      //Set to 0 before calculating checksum
         ip_hdr->saddr = inet_addr ( this->source.c_str() );    //Spoof the source ip address
-        ip_hdr->daddr = sin.sin_addr.s_addr;
+        ip_hdr->daddr = inet_addr ( this->destination.c_str() );
 #endif
 
 }
@@ -158,21 +174,33 @@ void paquet::build_tcp_header()
     tcp_hdr->check = 0; //leave checksum 0 now, filled later by pseudo header
     tcp_hdr->urg_ptr = 0;
 
-    psh.source_address = inet_addr( source.c_str() );
-    psh.dest_address = sin.sin_addr.s_addr;
-    psh.placeholder = 0;
-    psh.protocol = IPPROTO_TCP;
-    psh.tcp_length = htons(sizeof(struct tcphdr) + strlen(data) );
+  //  psh.source_address = inet_addr( source.c_str() );
+  //  psh.dest_address = sin.sin_addr.s_addr;
+  //  psh.placeholder = 0;
+  //  psh.protocol = IPPROTO_TCP;
+  //  psh.tcp_length = htons(sizeof(struct tcphdr) + strlen(data) );
 
-    int psize = sizeof(struct pseudo_header) + sizeof(struct tcphdr) + strlen(data);
-    pseudogram = (char*)malloc(psize);
+   // int psize = sizeof(struct pseudo_header) + sizeof(struct tcphdr) + strlen(data);
+    //pseudogram = (char*)malloc(psize);
+   // tcp_hdr->check = csum( (unsigned short*) pseudogram , psize);
+   // ip_hdr->check = tcp_hdr->check;
 
-    memcpy(pseudogram , (char*) &psh , sizeof (struct pseudo_header));
-    memcpy(pseudogram + sizeof(struct pseudo_header) , tcp_hdr , sizeof(struct tcphdr) + strlen(data));
+//    memcpy(pseudogram , (char*) &ip_hdr , sizeof (struct pseudo_header));
+ //   memcpy(pseudogram + sizeof(struct ip_hdr) , tcp_hdr , sizeof(struct tcphdr) + strlen(data));
 
-    tcp_hdr->check = csum( (unsigned short*) pseudogram , psize);
+
  #endif
 
+
+}
+
+void paquet::build_icmp_header()
+{
+
+}
+
+void paquet::build_udp_header()
+{
 
 }
 
@@ -180,21 +208,36 @@ void paquet::build_data_part()
 {
     //Data part
     memset (datagram, 0, 4096);
-    data = datagram + sizeof(struct ip) + sizeof(struct tcphdr);
+    if (type == "tcp")
+        data = datagram + sizeof(struct ip) + sizeof(struct tcphdr);
+    else if (type == "upd")
+        data = datagram + sizeof(struct ip) + sizeof(struct udphdr);
+    else if (type == "icmp")
+         data = datagram + sizeof(struct ip) + sizeof(struct icmphdr);
+    else
+        data = datagram + sizeof(struct ip);
     strcpy(data , payload.c_str());
 
     //some address resolution
    // strcpy(source_ip , "192.168.1.2");
     sin.sin_family = AF_INET;
-    sin.sin_port = htons(80);
-    sin.sin_addr.s_addr = inet_addr (destination.c_str());
+    din.sin_family = AF_INET;
+    sin.sin_port = htons(atol(sourcePort.c_str()));
+    sin.sin_addr.s_addr = inet_addr (source.c_str());
+    din.sin_port = htons(atol(sourcePort.c_str()));
+    din.sin_addr.s_addr = inet_addr (source.c_str());
 }
 
-void paquet::send()
+void paquet::send(int nb)
 {
-    int s = socket (PF_INET, SOCK_RAW, IPPROTO_TCP);
-
-        if(s == -1)
+    int s = -1;
+    if (this->type == "tcp")
+       s = socket (PF_INET, SOCK_RAW, IPPROTO_TCP);
+    else if (this->type == "udp")
+       s = socket (PF_INET, SOCK_RAW, IPPROTO_UDP);
+    else if (this->type == "icmp")
+       s = socket (PF_INET, SOCK_RAW, IPPROTO_ICMP);
+    if(s == -1)
         {
             //socket creation failed, may be because of non-root privileges
             perror("Failed to create socket");
@@ -211,14 +254,15 @@ void paquet::send()
     }
 
     //loop if you want to flood :)
-    //while (1)
-    //{
+    while (nb)
+   {
+        nb--;
         //Send the packet
      #ifdef __APPLE__
-    if (sendto (s, datagram, ip_hdr->ip_tos,  0, (struct sockaddr *) &sin, sizeof (sin)) < 0)
+    if (sendto (s, datagram, ip_hdr->ip_tot,  0, (struct sockaddr *) &sin, sizeof (sin)) < 0)
     #elif __WIN32
     #else
-        if (sendto (s, datagram, ip_hdr->tos,  0, (struct sockaddr *) &sin, sizeof (sin)) < 0)
+        if (sendto (s, datagram, ip_hdr->tot_len,  0, (struct sockaddr *) &sin, sizeof (sin)) < 0)
      #endif
         {
             perror("sendto failed");
@@ -230,10 +274,10 @@ void paquet::send()
             printf ("Packet Send. Length : %d \n" , ip_hdr->ip_tos);
 #elif __WIN32
 #else
-            printf ("Packet Send. Length : %d \n" , ip_hdr->tos);
+            printf ("Packet Send. Length : %d \n" , ip_hdr->tot_len);
              #endif
         }
-    //}
+    }
 }
 
 paquet::paquet(u_char *pkt, pcap_pkthdr header)

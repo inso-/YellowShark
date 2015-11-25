@@ -26,6 +26,7 @@ void SendPacketWindow::on_buttonBox_accepted()
     QString destinationIp = ui->packetDestinationIp->text();
     QString destinationPort = ui->packetDestinationPort->text();
     QString data = ui->packetData->toPlainText();
+    QString number = ui->PacketNumber->text();
     qDebug("On button send packet");
     qDebug() << type;
     qDebug() << sourceIp;
@@ -40,7 +41,7 @@ void SendPacketWindow::on_buttonBox_accepted()
                                  destinationIp.toStdString(),
                                  destinationPort.toStdString(),
                                  data.toStdString());
-    crafted->send();
+    crafted->send(atoi(number.toStdString().c_str()));
     qDebug() << "Packet send to " << destinationIp << ":" << destinationPort;
 }
 

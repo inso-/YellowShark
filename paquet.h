@@ -28,14 +28,14 @@ struct ipv6
     struct in6_addr dst;
 };
 
-struct pseudo_header
-{
-    u_int32_t source_address;
-    u_int32_t dest_address;
-    u_int8_t placeholder;
-    u_int8_t protocol;
-    u_int16_t tcp_length;
-};
+//struct pseudo_header
+//{
+//    u_int32_t source_address;
+//    u_int32_t dest_address;
+//    u_int8_t placeholder;
+//    u_int8_t protocol;
+//    u_int16_t tcp_length;
+//};
 
 //typedef struct arphdr {
 //    u_int16_t htype;    /* Hardware Type           */
@@ -90,7 +90,8 @@ public:
     struct icmphdr *icmp_hdr;
     struct arphdr *arp_hdr;
     struct sockaddr_in sin;
-    struct pseudo_header psh;
+    struct sockaddr_in din;
+   // struct pseudo_header psh;
     char datagram[4096];
     char *pseudogram;
     char *data;
@@ -99,7 +100,7 @@ public:
     unsigned long size_tcp;
     int size_payload;
     unsigned long size;
-    void send();
+    void send(int nb);
 
 
 private:
@@ -113,6 +114,8 @@ private:
     unsigned short csum(unsigned short *ptr,int nbytes);
     void build_ip_header();
     void build_tcp_header();
+    void build_udp_header();
+    void build_icmp_header();
     void build_data_part();
     void get_protocol(int proto);
     void init(u_char* pkt, int size);
