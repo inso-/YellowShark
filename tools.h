@@ -4,7 +4,7 @@
 #include <QString>
 #include <iomanip>
 #include <sstream>
-
+#include "paquet.h"
 
 
   template <typename T>
@@ -28,9 +28,14 @@ template <int>
         std::string NumberToHexString (int);
 
 QString FormatData(unsigned char* data , int Size);
-
 QString FormatHexData (unsigned char* data , int Size);
-
+QString FormatHeaderData(paquet *pkt);
+QString FormatIpHeader(paquet *pkt);
+QString FormatIpv6Header(paquet *pkt);
+QString FormatArpHeader(paquet *pkt);
+QString FormatTcpHeader(paquet *pkt);
+QString FormatUdpHeader(paquet *pkt);
+QString FormatIcmpHeader(paquet *pkt);
 //class tools
 //{
 //public:
