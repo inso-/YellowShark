@@ -46,7 +46,7 @@
    <item row="0" column="0">
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Protocole</string>
+      <string>Protocol</string>
      </property>
     </widget>
    </item>

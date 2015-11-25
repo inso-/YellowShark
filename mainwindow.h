@@ -151,7 +151,7 @@ public slots:
      void tableWidgetSelectionModel_currentRowChanged(QModelIndex newSelection,QModelIndex oldSelection);
      void testChanged(unsigned char *, int);
      void pcapChanged(unsigned char *buffer,  pcap_pkthdr header);
-     void filterChanged(filter fil);
+     void filterChanged(struct s_filter fil);
      void threadFinished();
 private:
     int run_pcap;
@@ -168,6 +168,8 @@ private:
     //void getDataFromFile();
     void clear();
     void addPaquet(paquet &tmp);
+
+    bool showPacket(paquet &p);
 };
 
 #endif // MAINWINDOW_H

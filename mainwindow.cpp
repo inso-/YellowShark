@@ -13,6 +13,7 @@
 #include <iomanip>
 #include <tools.h>
 #include <future>
+#include <string.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -25,6 +26,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableWidget->setSortingEnabled(true);
     ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableWidget->setModel(&model);
+
+    filter.protocol = "";
+    filter.sourceIp = "";
+    filter.sourcePort = "";
+    filter.destinationIp = "";
+    filter.destinationPort = "";
 }
 
 MainWindow::~MainWindow()
@@ -45,7 +52,7 @@ void MainWindow::on_actionFilter_Capture_triggered()
 {
     qRegisterMetaType<struct s_filter>("filter");
     filterwindow = new FilterWindow();
-    connect(filterwindow, SIGNAL(filterValueChanged(filter)), this, SLOT(filterChanged(filter)));
+    connect(filterwindow, SIGNAL(filterValueChanged(struct s_filter)), this, SLOT(filterChanged(struct s_filter)));
 
     filterwindow->show();
 }
@@ -185,9 +192,54 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
 
  void MainWindow::filterChanged(struct s_filter fil)
  {
+     puts("LOL");
      filter = fil;
  }
 
+ bool MainWindow::showPacket(paquet &p) {
+     if (filter.protocol && strlen(filter.protocol)) {
+         if (strcmp(p.type.c_str(), filter.protocol)) {
+             qDebug("diff protocol");
+             qDebug(p.type.c_str());
+             qDebug(filter.protocol);
+             return false;
+         }
+     }
+     if (filter.sourceIp && strlen(filter.sourceIp)) {
+         if (strcmp(p.source.c_str(), filter.sourceIp)) {
+             qDebug("diff source ip");
+             qDebug(p.source.c_str());
+             qDebug(filter.sourceIp);
+             return false;
+         }
+     }
+     if (filter.sourcePort && strlen(filter.sourcePort)) {
+         if (strcmp(p.sourcePort.c_str(), filter.sourcePort)) {
+             qDebug("diff source port");
+             qDebug(p.sourcePort.c_str());
+             qDebug(filter.sourcePort);
+             return false;
+         }
+     }
+     if (filter.destinationIp && strlen(filter.destinationIp)) {
+         if (strcmp(p.destination.c_str(), filter.destinationIp)) {
+             qDebug("diff dest ip");
+             qDebug(p.destination.c_str());
+             qDebug(filter.destinationIp);
+             return false;
+         }
+     }
+     if (filter.destinationPort && strlen(filter.destinationPort)) {
+         if (strcmp(p.destinationPort.c_str(), filter.destinationPort)) {
+             qDebug("diff dest port");
+             qDebug(p.destinationPort.c_str());
+             qDebug(filter.destinationPort);
+             return false;
+         }
+     }
+     qDebug("add packet");
+     return true;
+ }
 
  void MainWindow::threadFinished()
  {
@@ -211,17 +263,20 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
 
 void MainWindow::addPaquet(paquet &tmp)
 {
-    this->model.addPaquet(tmp);
-    this->refreshtableWidget();
+    if (showPacket(tmp)) {
+        this->model.addPaquet(tmp);
+        this->refreshtableWidget();
+    }
 }
- void MainWindow::clear()
- {
+
+void MainWindow::clear()
+{
      model.clear();
      ui->textBrowser->clear();
      ui->textBrowser_2->clear();
      proxyModel.clear();
      selected = -1;
- }
+}
 
 #include <stdio.h>
 #include <time.h>
