@@ -72,35 +72,9 @@ void MainWindow::on_actionOpen_triggered()
     qDebug()<<"Starting thread in Thread "<<this->QObject::thread()->currentThreadId();
     run_pcap = 1;
     // emit(live->run());
+        parse->requestPaquet(fileName);
     thread->start();
-    parse->requestPaquet(fileName);
 }
-
-
-
-//void MainWindow::getDataFromFile()
-//{
-//      qRegisterMetaType<pcap_pkthdr>("pcap_pkthdr");
-//      this->threadFinished();
-//      proxyModel.clear();
-//      QString fileName = QFileDialog::getOpenFileName(this, tr("Open file"), "",tr("Files(*.pcap)"));
-//      if (fileName == "")
-//          return;
-//      parse = new pcap_analyse();
-//    parse->window = this;
-//    thread = new QThread();
-//       parse->moveToThread(thread);
-//       connect(parse, SIGNAL(finished()), thread, SLOT(quit()), Qt::DirectConnection);
-//       connect(parse, SIGNAL(tvalueChanged(unsigned char *, pcap_pkthdr)), this, SLOT(pcapChanged(unsigned char *, pcap_pkthdr)));
-//       connect(thread, SIGNAL(started()), parse, SLOT(run()));
-//      // connect(live, SIGNAL(finished()), thread, SLOT(quit()), Qt::DirectConnection);
-//      // connect(live, SIGNAL(valueChanged(paquet&)), this, SLOT(on_pcap_analyse_valueChanged(Paquet&)));
-//       qDebug()<<"Starting thread in Thread "<<this->QObject::thread()->currentThreadId();
-//       run_pcap = 1;
-//      // emit(live->run());
-//       thread->start();
-//       parse->requestPaquet(fileName);
-//}
 
 void MainWindow::on_actionStart_Capture_triggered()
 {
@@ -249,10 +223,14 @@ void MainWindow::on_actionSave_triggered()
   char buffer[80];
   time(&rawtime);
   timeinfo = localtime(&rawtime);
-  strftime(buffer, 80, "/pcapFile/%d%m%y_%H%M%S.pcap", timeinfo);
-  strcat(CurrentPath, buffer);
+  strftime(buffer, 80, "%d%m%y_%H%M%S.pcap", timeinfo);
+  QString filename = QFileDialog::getSaveFileName(this, tr("Save file"), buffer,tr("Files(*.pcap)"));
 
-  pcap_dumper_t *dumper = pcap_dump_open(handle, CurrentPath);
+ // strcat(CurrentPath, buffer);
+
+  pcap_dumper_t *dumper = pcap_dump_open(handle, filename.toStdString().c_str());
+  if (dumper == NULL)
+      return;
   pcap_pkthdr	pcap_hdr;
   pcap_hdr.caplen = sizeof(uchar *);
   pcap_hdr.len = pcap_hdr.caplen;
