@@ -63,7 +63,7 @@ void MainWindow::on_actionOpen_triggered()
     parse = new pcap_analyse();
     parse->window = this;
     thread = new QThread();
-    parse->moveToThread(thread);
+   // parse->moveToThread(thread);
     connect(parse, SIGNAL(finished()), thread, SLOT(quit()), Qt::DirectConnection);
     connect(parse, SIGNAL(tvalueChanged(unsigned char *, pcap_pkthdr)), this, SLOT(pcapChanged(unsigned char *, pcap_pkthdr)));
     connect(thread, SIGNAL(started()), parse, SLOT(run()));
@@ -73,7 +73,8 @@ void MainWindow::on_actionOpen_triggered()
     run_pcap = 1;
     // emit(live->run());
         parse->requestPaquet(fileName);
-    thread->start();
+        parse->run();
+  //  thread->start();
 }
 
 void MainWindow::on_actionStart_Capture_triggered()
