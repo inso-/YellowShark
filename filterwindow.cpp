@@ -1,5 +1,6 @@
 #include "filterwindow.h"
 #include "ui_filterwindow.h"
+#include <QDebug>
 
 FilterWindow::FilterWindow(QWidget *parent) :
     QDialog(parent),
@@ -21,11 +22,11 @@ void FilterWindow::on_buttonBox_accepted()
     QString destinationIp = ui->packetDestinationIp->text();
     QString destinationPort = ui->packetDestinationPort->text();
 
-    filter.protocol = type.toStdString().c_str();
-    filter.sourceIp = sourceIp.toStdString().c_str();
-    filter.sourcePort = sourcePort.toStdString().c_str();
-    filter.destinationIp = destinationIp.toStdString().c_str();
-    filter.destinationPort = destinationPort.toStdString().c_str();
+    filter.protocol = strdup(type.toStdString().c_str());
+    filter.sourceIp = strdup(sourceIp.toStdString().c_str());
+    filter.sourcePort = strdup(sourcePort.toStdString().c_str());
+    filter.destinationIp = strdup(destinationIp.toStdString().c_str());
+    filter.destinationPort = strdup(destinationPort.toStdString().c_str());
 
     emit filterValueChanged(filter);
 }

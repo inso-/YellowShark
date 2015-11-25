@@ -9,7 +9,7 @@ typedef struct s_filter{
     const char *sourcePort;
     const char *destinationIp;
     const char *destinationPort;
-}filter;
+} filter;
 
 namespace Ui {
 class FilterWindow;

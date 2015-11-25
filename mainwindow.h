@@ -19,6 +19,7 @@ public slots:
     //void selectionChangedSlot(const QItemSelection &newSelection,const QItemSelection &oldSelection);
 public:
     std::vector<paquet> packets;
+    std::vector<paquet> allPackets;
 
     void clear()
     {
@@ -169,6 +170,8 @@ private:
     void clear();
     void addPaquet(paquet &tmp);
 
+    bool checkFilterToken(char *data, char *filter, bool allow_range = false);
+    bool checkRangeFilter(char *data, char *filter);
     bool showPacket(paquet &p);
 };
 
