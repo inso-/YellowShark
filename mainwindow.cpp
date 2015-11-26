@@ -211,7 +211,7 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
      puts("LOL");
      filter = fil;
 
-     model.packets.clear();
+     this->clear();
      for (std::vector<paquet>::iterator it = model.allPackets.begin(); it != model.allPackets.end(); ++it) {
          if (showPacket(*it)) {
             model.addPaquet(*it);
