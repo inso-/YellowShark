@@ -172,6 +172,7 @@ void MainWindow::tableWidgetSelectionModel_currentRowChanged(QModelIndex newSele
 
 void MainWindow::on_tableWidget_activated(const QModelIndex &index)
 {
+ //   qDebug("ok");
 }
 
  void MainWindow::testChanged(unsigned char *buffer, int data_size)
@@ -192,70 +193,49 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
 
  void MainWindow::filterChanged(struct s_filter fil)
  {
+     puts("LOL");
      filter = fil;
- }
-
- bool MainWindow::checkRangeFilter(char *data, char *filter) {
-     char *tmp = strtok(filter, "-");
-     if (tmp == NULL) {
-         return false;
-     }
-     int first = atoi(tmp);
-     tmp = strtok(NULL, "-");
-     if (tmp == NULL) {
-         return false;
-     }
-     int second = atoi(tmp);
-     int port = atoi(data);
-     return first <= port && second >= port;
- }
-
- bool MainWindow::checkFilterToken(char *data, char *filter, bool allow_range) {
-     char *token = filter;
-     if (strstr(filter, ",") != NULL) {
-         token = strtok(filter, ",");
-     }
-     while (token != NULL) {
-         if (allow_range && strstr(token, "-") && checkRangeFilter(strdup(data), token)) {
-             return true;
-         }
-         if (strcmp(data, token) == 0) {
-             return true;
-         }
-         token = strtok(NULL, ",");
-     }
-     return false;
  }
 
  bool MainWindow::showPacket(paquet &p) {
      if (filter.protocol && strlen(filter.protocol)) {
-         if (!checkFilterToken((char*)p.type.c_str(), (char*) filter.protocol)) {
-             qDebug("exit protocol");
-            return false;
+         if (strcmp(p.type.c_str(), filter.protocol)) {
+             qDebug("diff protocol");
+             qDebug(p.type.c_str());
+             qDebug(filter.protocol);
+             return false;
          }
      }
      if (filter.sourceIp && strlen(filter.sourceIp)) {
-         if (!checkFilterToken((char*)p.source.c_str(), (char*) filter.sourceIp)) {
-             qDebug("exit sourceIp");
-            return false;
+         if (strcmp(p.source.c_str(), filter.sourceIp)) {
+             qDebug("diff source ip");
+             qDebug(p.source.c_str());
+             qDebug(filter.sourceIp);
+             return false;
          }
      }
      if (filter.sourcePort && strlen(filter.sourcePort)) {
-         if (!checkFilterToken((char*)p.sourcePort.c_str(), (char*) filter.sourcePort)) {
-             qDebug("exit sourcePort");
-            return false;
+         if (strcmp(p.sourcePort.c_str(), filter.sourcePort)) {
+             qDebug("diff source port");
+             qDebug(p.sourcePort.c_str());
+             qDebug(filter.sourcePort);
+             return false;
          }
      }
      if (filter.destinationIp && strlen(filter.destinationIp)) {
-         if (!checkFilterToken((char*)p.destination.c_str(), (char*) filter.destinationIp)) {
-             qDebug("exit destinationIp");
-            return false;
+         if (strcmp(p.destination.c_str(), filter.destinationIp)) {
+             qDebug("diff dest ip");
+             qDebug(p.destination.c_str());
+             qDebug(filter.destinationIp);
+             return false;
          }
      }
      if (filter.destinationPort && strlen(filter.destinationPort)) {
-         if (!checkFilterToken((char*)p.destinationPort.c_str(), strdup(filter.destinationPort), true)) {
-             qDebug("exit destinationPort");
-            return false;
+         if (strcmp(p.destinationPort.c_str(), filter.destinationPort)) {
+             qDebug("diff dest port");
+             qDebug(p.destinationPort.c_str());
+             qDebug(filter.destinationPort);
+             return false;
          }
      }
      qDebug("add packet");
@@ -295,6 +275,7 @@ void MainWindow::clear()
      model.clear();
      ui->textBrowser->clear();
      ui->textBrowser_2->clear();
+     ui->textBrowser_3->clear();
      proxyModel.clear();
      selected = -1;
 }
@@ -349,7 +330,6 @@ void MainWindow::on_actionModify_and_Send_Selected_Packet_triggered()
     if (selected == -1)
         return;
     paquet tmp = model.packets.at(selected);
-    printf("%s", tmp.source.c_str());
     sendwindow = new SendPacketWindow(); // Be sure to destroy you window somewhere
     sendwindow->fromPaquet(&tmp);
     sendwindow->show();
