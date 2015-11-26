@@ -238,17 +238,11 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
          }
      }
      if (filter.sourcePort && strlen(filter.sourcePort)) {
-<<<<<<< HEAD
          if (strcmp(p.sourcePort.c_str(), filter.sourcePort)) {
              qDebug("diff source port");
              qDebug(p.sourcePort.c_str());
              qDebug(filter.sourcePort);
              return false;
-=======
-         if (!checkFilterToken((char*)p.sourcePort.c_str(), strdup(filter.sourcePort), true)) {
-             qDebug("exit sourcePort");
-            return false;
->>>>>>> 48d66e78674eb9bc288f50731641ccab8606c67d
          }
      }
      if (filter.destinationIp && strlen(filter.destinationIp)) {
