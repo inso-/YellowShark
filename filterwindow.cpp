@@ -2,16 +2,21 @@
 #include "ui_filterwindow.h"
 #include <QDebug>
 
-FilterWindow::FilterWindow(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::FilterWindow)
-{
+FilterWindow::FilterWindow(QWidget *parent):QDialog(parent), ui(new Ui::FilterWindow) {
     ui->setupUi(this);
-    }
+}
 
 FilterWindow::~FilterWindow()
 {
     delete ui;
+}
+
+void FilterWindow::setFilter(s_filter f) {
+    ui->packetType->setText(f.protocol);
+    ui->packetSourceIp->setText(f.sourceIp);
+    ui->packetSourcePort->setText(f.sourcePort);
+    ui->packetDestinationIp->setText(f.destinationIp);
+    ui->packetDestinationPort->setText(f.destinationPort);
 }
 
 void FilterWindow::on_buttonBox_accepted()

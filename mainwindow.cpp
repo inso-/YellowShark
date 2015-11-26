@@ -55,11 +55,26 @@ void MainWindow::on_actionFilter_Capture_triggered()
     connect(filterwindow, SIGNAL(filterValueChanged(struct s_filter)), this, SLOT(filterChanged(struct s_filter)));
 
     filterwindow->show();
+    filterwindow->setFilter(filter);
 }
 
 void MainWindow::on_actionClear_Capture_triggered()
 {
   this->clear();
+}
+
+void MainWindow::on_actionClear_Filter_triggered()
+{
+    filter.protocol = "";
+    filter.sourceIp = "";
+    filter.sourcePort = "";
+    filter.destinationIp = "";
+    filter.destinationPort = "";
+    model.packets.clear();
+    for (std::vector<paquet>::iterator it = model.allPackets.begin(); it != model.allPackets.end(); ++it) {
+        model.addPaquet(*it);
+    }
+    this->refreshtableWidget();
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -195,6 +210,14 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
  {
      puts("LOL");
      filter = fil;
+
+     model.packets.clear();
+     for (std::vector<paquet>::iterator it = model.allPackets.begin(); it != model.allPackets.end(); ++it) {
+         if (showPacket(*it)) {
+            model.addPaquet(*it);
+            this->refreshtableWidget();
+         }
+     }
  }
 
  bool MainWindow::showPacket(paquet &p) {
@@ -215,11 +238,17 @@ void MainWindow::on_tableWidget_activated(const QModelIndex &index)
          }
      }
      if (filter.sourcePort && strlen(filter.sourcePort)) {
+<<<<<<< HEAD
          if (strcmp(p.sourcePort.c_str(), filter.sourcePort)) {
              qDebug("diff source port");
              qDebug(p.sourcePort.c_str());
              qDebug(filter.sourcePort);
              return false;
+=======
+         if (!checkFilterToken((char*)p.sourcePort.c_str(), strdup(filter.sourcePort), true)) {
+             qDebug("exit sourcePort");
+            return false;
+>>>>>>> 48d66e78674eb9bc288f50731641ccab8606c67d
          }
      }
      if (filter.destinationIp && strlen(filter.destinationIp)) {
@@ -268,6 +297,7 @@ void MainWindow::addPaquet(paquet &tmp)
         this->model.addPaquet(tmp);
         this->refreshtableWidget();
     }
+    this->model.allPackets.push_back(tmp);
 }
 
 void MainWindow::clear()
