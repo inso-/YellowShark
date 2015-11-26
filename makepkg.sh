@@ -7,7 +7,7 @@ Version: 1.0
 Section: base
 Priority: optional
 Architecture: all
-Depends: libx11-data, libpcap0.8, netbase, fonts-droid, libgl1-mesa-dri, gnome-themes-standard-data, libgl1-mesa-glx, qt5-default
+Depends:  ${shlibs:Depends}, ${misc:Depends},  libx11-data, libpcap0.8, netbase, fonts-droid, libgl1-mesa-dri, gnome-themes-standard-data, libgl1-mesa-glx, qt5-default
 Maintainer: Glouglou
 Description: Wireshark like" > control
 touch postint
